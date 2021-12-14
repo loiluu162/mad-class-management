@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 // const htmlToText = require('html-to-text');
-const { from, user, pass, host } = require('../config').email;
+const { from, user, pass, host } = require('../config').emailConfig;
 
 const transporter = nodemailer.createTransport({
   host: host,
