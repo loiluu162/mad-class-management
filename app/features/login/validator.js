@@ -93,7 +93,7 @@ exports.validate = (method) => {
           return true;
         }),
         body('code').custom((code) => {
-          return UserRepo.TokenRepo.findOne({
+          return TokenRepo.findOne({
             token: code,
             purpose: PASSWORD_RESET_PURPOSE,
           }).then((token) => {
@@ -124,7 +124,7 @@ exports.validate = (method) => {
       return [
         body('oldPassword').isLength({ min: 6 }),
         body('oldPassword').custom((oldPassword, { req }) => {
-          const { userId } = req.session;
+          const { userId } = req;
           return UserRepo.findById(userId).then(async (user) => {
             if (!user) {
               return Promise.reject(new Error('User not found'));

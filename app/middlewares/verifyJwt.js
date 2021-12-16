@@ -1,81 +1,52 @@
 const { StatusCodes } = require('http-status-codes');
 const jwt = require('jsonwebtoken');
 
-const { UserRepo } = require('../features/users/rep');
+const { UserRepo } = require('../features/users/repo');
 
-const { TokenExpiredError } = jwt;
+const { accessTokenSecret } = require('../config').tokenConfig;
 
-const { accessTokenSecret } = require('../config').jwtConfig;
+const AppError = require('../utils/appError');
 
-const catchError = (err, res) => {
-  if (err instanceof TokenExpiredError) {
-    return res
-      .status(StatusCodes.UNAUTHORIZED)
-      .send({ message: 'Unauthorized! Access Token was expired!' });
-  }
+const verifyToken = async (req, res, next) => {
+  console.log(req.headers);
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    const token = req.headers.authorization.split(' ')[1];
 
-  return res
-    .sendStatus(StatusCodes.UNAUTHORIZED)
-    .send({ message: 'Unauthorized!' });
-};
-
-const verifyToken = (req, res, next) => {
-  const token = req.headers['x-access-token'];
-
-  if (!token) {
-    return res
-      .status(StatusCodes.FORBIDDEN)
-      .send({ message: 'No token provided!' });
-  }
-
-  jwt.verify(token, accessTokenSecret, (err, decoded) => {
-    if (err) {
-      return catchError(err, res);
+    if (!token) {
+      return next(
+        new AppError('Token provide type wrong', StatusCodes.FORBIDDEN)
+      );
     }
-    req.userId = decoded.id;
-    next();
-  });
+
+    jwt.verify(token, accessTokenSecret, (err, decoded) => {
+      if (err) {
+        next(
+          new AppError(
+            'Unauthorized! Access Token was not existed or expired!',
+            StatusCodes.UNAUTHORIZED
+          )
+        );
+      }
+      UserRepo.findOne({ id: decoded.id, enabled: true, blocked: false }).then(
+        (user) => {
+          if (!user) {
+            next(
+              new AppError(
+                'The user belonging to this token does no longer exist.',
+                StatusCodes.FORBIDDEN
+              )
+            );
+          }
+        }
+      );
+      req.userId = decoded.id;
+      next();
+    });
+  } else next(new AppError('No token provided!', StatusCodes.FORBIDDEN));
 };
-
-// const isAdmin = (req, res, next) => {
-//   User.findByPk(req.userId).then((user) => {
-//     user.getRoles().then((roles) => {
-//       if (roles.some((role) => role.name === 'ROLE_ADMIN')) next();
-//       res.status(StatusCodes.FORBIDDEN).send({
-//         message: 'Require Admin Role!',
-//       });
-//     });
-//   });
-// };
-
-// const isModerator = (req, res, next) => {
-//   User.findByPk(req.userId).then((user) => {
-//     user.getRoles().then((roles) => {
-//       if (roles.some((role) => role.name === 'ROLE_MOD')) next();
-
-//       res.status(StatusCodes.FORBIDDEN).send({
-//         message: 'Require Moderator Role!',
-//       });
-//     });
-//   });
-// };
-
-// const isModeratorOrAdmin = (req, res, next) => {
-//   User.findByPk(req.userId).then((user) => {
-//     user.getRoles().then((roles) => {
-//       if (
-//         roles.some(
-//           (role) => role.name === 'ROLE_ADMIN' || role.name === 'ROLE_MOD'
-//         )
-//       ) {
-//         next();
-//       }
-//       res.status(StatusCodes.FORBIDDEN).send({
-//         message: 'Require Moderator or Admin Role!',
-//       });
-//     });
-//   });
-// };
 
 const hasAnyRole = (requiredRoles) => {
   return (req, res, next) => {
@@ -84,9 +55,12 @@ const hasAnyRole = (requiredRoles) => {
       if (roles.some((role) => requiredRoles.includes(role))) {
         next();
       }
-      res.status(StatusCodes.FORBIDDEN).send({
-        message: 'Required at least one role in ' + requiredRoles,
-      });
+      return next(
+        new AppError(
+          'Required at least one role in ' + requiredRoles,
+          StatusCodes.FORBIDDEN
+        )
+      );
     });
   };
 };

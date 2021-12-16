@@ -1,4 +1,5 @@
 const express = require('express');
+const { verifyToken } = require('../../middlewares/verifyJwt');
 const router = express.Router();
 
 const LoginController = require('./controller');
@@ -17,6 +18,7 @@ router.post(
 
 router.post(
   '/changePassword',
+  [verifyToken],
   Validator.validate('changePassword'),
   LoginController.changePassword
 );
@@ -40,5 +42,8 @@ router.post(
   Validator.validate('verifyEmail'),
   LoginController.verifyEmail
 );
+router.get('/testjwt', [verifyToken], (req, res, next) => {
+  res.json(req.userId);
+});
 
 module.exports = router;

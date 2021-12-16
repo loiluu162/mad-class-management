@@ -17,6 +17,9 @@ const {
 } = require('../../constants');
 const { generateAccessToken } = require('../../utils/token');
 
+const { verificationExpireIn, passwordResetExpireIn, refreshTokenExpireIn } =
+  require('../../config').tokenConfig;
+
 const login = async (req) => {
   catchValidationError(req);
   const { email, password } = req.body;
@@ -30,7 +33,7 @@ const login = async (req) => {
     throw Error('Password wrong');
   }
   const accessToken = generateAccessToken(user.id);
-  const refreshToken = getRefreshToken(user.id);
+  const refreshToken = await getRefreshToken(user.id);
   const authorities = (await user.getRoles()).map((role) => role.name);
   return {
     id: user.id,
@@ -77,15 +80,15 @@ const signup = async (req) => {
 };
 
 const isExistsEmail = async (email) => {
-  return await UserRepo.isExistsEmail(email);
+  return await UserRepo.findOne({ email });
 };
 
 const createVerificationToken = async (userId, options = {}) => {
   const token = await TokenUtils.generate();
   const expiresAt = new Date();
 
-  expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
-  return await TokenRepo.create(
+  expiresAt.setSeconds(expiresAt.getSeconds() + verificationExpireIn);
+  await TokenRepo.create(
     {
       userId,
       token,
@@ -94,14 +97,15 @@ const createVerificationToken = async (userId, options = {}) => {
     },
     options
   );
+  return token;
 };
 
 const createPasswordResetToken = async (userId, options = {}) => {
   const token = await TokenUtils.generate();
   const expiresAt = new Date();
 
-  expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
-  return await TokenRepo.create(
+  expiresAt.setSeconds(expiresAt.getSeconds() + passwordResetExpireIn);
+  await TokenRepo.create(
     {
       userId,
       token,
@@ -110,6 +114,7 @@ const createPasswordResetToken = async (userId, options = {}) => {
     },
     options
   );
+  return token;
 };
 
 const verifyEmail = async (req) => {
@@ -123,11 +128,10 @@ const verifyEmail = async (req) => {
     expiresAt: { [Op.lt]: new Date() },
     usedAt: { [Op.eq]: null },
   });
-  // const user = await UserRepo.getUserById(userId);
-  // setUserAuthenticated(req, user);
 
   await UserRepo.verifyUser(userId);
-  return await UserRepo.markTokenUsed(id);
+
+  return await markTokenUsed(id);
 };
 
 const verifyPasswordResetToken = async (req) => {
@@ -140,7 +144,6 @@ const resetPassword = async (req) => {
   catchValidationError(req);
 
   const { code, newPassword } = req.body;
-  // hash password
   const hashedPw = PasswordUtils.hash(newPassword);
   const { userId, id } = await TokenRepo.findOne({
     token: code,
@@ -148,12 +151,8 @@ const resetPassword = async (req) => {
     expiresAt: { [Op.lt]: new Date() },
     usedAt: { [Op.eq]: null },
   });
-  // const user = await UserRepo.getUserById(userId);
 
-  // setUserAuthenticated(req, user);
-
-  // mark token used
-  await UserRepo.markTokenUsed(id);
+  await markTokenUsed(id);
 
   // user not enabled
   if (!(await UserRepo.findById(userId))) {
@@ -165,10 +164,8 @@ const resetPassword = async (req) => {
 
 const requestForgotPassword = async (req) => {
   catchValidationError(req);
-
-  req.session.forgotPassword = true;
   const { email } = req.body;
-  const user = await UserRepo.getUserByEmail(email);
+  const user = await UserRepo.findOne({ email });
   const token = await createPasswordResetToken(user.id);
   return await EmailUtils.sendPasswordReset(email, token);
 };
@@ -177,27 +174,32 @@ const changePassword = async (req) => {
   catchValidationError(req);
 
   const { newPassword } = req.body;
-  const { userId } = req.session;
+  const { userId } = req;
 
   const hashedNewPassword = await PasswordUtils.hash(newPassword);
 
-  return UserRepo.resetPassword(userId, hashedNewPassword);
+  return await UserRepo.update(
+    { password: hashedNewPassword },
+    {
+      id: userId,
+    }
+  );
 };
 
 const getRefreshToken = async (userId) => {
   const refreshToken = await TokenRepo.findOne({
     userId: userId,
     purpose: REFRESH_TOKEN_PURPOSE,
-    expiresAt: { [Op.lt]: new Date() },
+    expiresAt: { [Op.gt]: new Date() },
   });
   if (!refreshToken) {
     const expiresAt = new Date();
 
-    expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
+    expiresAt.setSeconds(expiresAt.getSeconds() + refreshTokenExpireIn);
 
     const token = uuid();
     await TokenRepo.create({
-      token,
+      token: token,
       purpose: REFRESH_TOKEN_PURPOSE,
       expiresAt,
       userId: userId,
@@ -206,20 +208,7 @@ const getRefreshToken = async (userId) => {
   }
   return refreshToken.token;
 };
-// const setUserAuthenticated = (req, user) => {
-//   // TODO: I dont know why this is not working, it take me a hour to find out error happened here
-//   // req.session = {
-//   //   ...req.session,
-//   //   loggedIn: true,
-//   //   email: user.email,
-//   //   userId: user.id,
-//   //   photoUrl: user.photo_url,
-//   // };
-//   // req.session.loggedIn = true;
-//   // req.session.email = user.email;
-//   // req.session.userId = user.id;
-//   // req.session.photoUrl = user.photo_url;
-// };
+
 // const setTokenCookie = (res, token) => {
 //   // create http only cookie with refresh token that expires in 7 days
 //   const cookieOptions = {
@@ -228,6 +217,15 @@ const getRefreshToken = async (userId) => {
 //   };
 //   res.cookie('refreshToken', token, cookieOptions);
 // };
+
+const markTokenUsed = async (id) => {
+  return await TokenRepo.update(
+    { token_used_at: new Date() },
+    {
+      id,
+    }
+  );
+};
 
 module.exports = {
   login,

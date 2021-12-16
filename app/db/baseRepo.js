@@ -7,12 +7,8 @@ module.exports = class BaseRepository {
     return this.model.create(data, options);
   }
 
-  updateOne(data, condition) {
-    return this.model.updateOne(data, { where: condition });
-  }
-
-  updateMany(data, condition) {
-    return this.model.updateMany(data, { where: condition });
+  update(data, condition) {
+    return this.model.update(data, { where: condition });
   }
 
   findById(_id) {
