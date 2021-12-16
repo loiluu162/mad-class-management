@@ -1,9 +1,13 @@
 const EMAIL_CONFIRMATION_PURPOSE = 'EMAIL_CONFIRMATION';
 const PASSWORD_RESET_PURPOSE = 'PASSWORD_RESET';
+const REFRESH_TOKEN_PURPOSE = 'REFRESH_TOKEN';
 const AVATAR_DIR = './public/upload/avatars';
 const IMAGE_EXT_REG = /\.(gif|jpe?g|tiff?|png|webp|bmp)$/i;
 
 const DEFAULT_MAX_AGE_SESSION = 24 * 60 * 60 * 1000;
+
+const ROLE_USER = 'ROLE_USER';
+const ROLE_ADMIN = 'ROLE_ADMIN';
 
 module.exports = {
   AVATAR_DIR,
@@ -11,4 +15,7 @@ module.exports = {
   PASSWORD_RESET_PURPOSE,
   IMAGE_EXT_REG,
   DEFAULT_MAX_AGE_SESSION,
+  ROLE_USER,
+  ROLE_ADMIN,
+  REFRESH_TOKEN_PURPOSE,
 };

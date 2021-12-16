@@ -4,7 +4,6 @@ require('./crons');
 const errorHandler = require('./middlewares/errorHandler');
 const AppError = require('./utils/appError');
 
-const db = require('./db');
 const { UserRoute, LoginRoute } = require('./features');
 
 const app = express();
@@ -16,9 +15,8 @@ app.use(
   })
 );
 
-
-app.use('/api/users', UserRoute)
-app.use('/api/auth', LoginRoute)
+app.use('/api/users', UserRoute);
+app.use('/api/auth', LoginRoute);
 
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));

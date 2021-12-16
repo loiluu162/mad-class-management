@@ -1,5 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
-const { errorResponse } = require('../utils/response');
+const { errorResponse } = require('../utils/responseWrapper');
 
 const sendErrorDev = (err, req, res) => {
   if (req.originalUrl.startsWith('/api')) {

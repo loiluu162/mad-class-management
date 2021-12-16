@@ -1,5 +1,5 @@
 const { body } = require('express-validator');
-const UserRepo = require('../users/repo');
+const { UserRepo, TokenRepo } = require('../users/repo');
 
 const {
   EMAIL_CONFIRMATION_PURPOSE,
@@ -23,7 +23,7 @@ exports.validate = (method) => {
         }),
         body('email', 'Invalid email').exists().isEmail().trim(),
         body('email').custom((email) => {
-          return UserRepo.isExistsEmail(email).then((existed) => {
+          return UserRepo.findOne({ email }).then((existed) => {
             if (existed) {
               return Promise.reject(
                 new AppError('E-mail already in use', StatusCodes.FORBIDDEN)
@@ -37,7 +37,7 @@ exports.validate = (method) => {
       return [
         body('email', 'User email required ').exists(),
         body('email').custom((email) => {
-          return UserRepo.isExistsEmail(email).then((existed) => {
+          return UserRepo.findOne({ email }).then((existed) => {
             if (!existed) {
               return Promise.reject(new AppError('E-mail not existed in use'));
             }
@@ -68,17 +68,18 @@ exports.validate = (method) => {
     case 'verifyEmail': {
       return [
         body('code').custom((code) => {
-          return UserRepo.getValidToken(code, EMAIL_CONFIRMATION_PURPOSE).then(
-            (token) => {
-              if (!token) {
-                return Promise.reject(
-                  new AppError(
-                    'Confirm code was wrong or had been expired or used'
-                  )
-                );
-              }
+          return TokenRepo.findOne({
+            token: code,
+            purpose: EMAIL_CONFIRMATION_PURPOSE,
+          }).then((token) => {
+            if (!token) {
+              return Promise.reject(
+                new AppError(
+                  'Confirm code was wrong or had been expired or used'
+                )
+              );
             }
-          );
+          });
         }),
       ];
     }
@@ -92,15 +93,16 @@ exports.validate = (method) => {
           return true;
         }),
         body('code').custom((code) => {
-          return UserRepo.getValidToken(code, PASSWORD_RESET_PURPOSE).then(
-            (token) => {
-              if (!token) {
-                return Promise.reject(
-                  new Error('Password reset token had been expired or used')
-                );
-              }
+          return UserRepo.TokenRepo.findOne({
+            token: code,
+            purpose: PASSWORD_RESET_PURPOSE,
+          }).then((token) => {
+            if (!token) {
+              return Promise.reject(
+                new Error('Password reset token had been expired or used')
+              );
             }
-          );
+          });
         }),
       ];
     }
@@ -108,7 +110,7 @@ exports.validate = (method) => {
       return [
         body('email', 'Invalid email').exists().isEmail().trim(),
         body('email').custom((email) => {
-          return UserRepo.isExistsEmail(email).then((existed) => {
+          return UserRepo.findOne({ email }).then((existed) => {
             if (!existed) {
               return Promise.reject(
                 new AppError('Email not existed in use', StatusCodes.FORBIDDEN)
@@ -123,7 +125,7 @@ exports.validate = (method) => {
         body('oldPassword').isLength({ min: 6 }),
         body('oldPassword').custom((oldPassword, { req }) => {
           const { userId } = req.session;
-          return UserRepo.getUserById(userId).then(async (user) => {
+          return UserRepo.findById(userId).then(async (user) => {
             if (!user) {
               return Promise.reject(new Error('User not found'));
             }

@@ -1,6 +1,6 @@
 const { databaseConnectionString } = require('../config');
 
-const { Sequelize, DataTypes } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize(databaseConnectionString);
 
@@ -8,16 +8,16 @@ const User = require('../features/users/user')(sequelize, Sequelize);
 const Role = require('../features/users/role')(sequelize, Sequelize);
 const Token = require('../features/users/token')(sequelize, Sequelize);
 
-const User_Role = sequelize.define('user_role', {}, { timestamps: false });
+const UserRole = sequelize.define('user_role', {}, { timestamps: false });
 
 Role.belongsToMany(User, {
-  through: User_Role,
+  through: UserRole,
   foreignKey: 'roleId',
   otherKey: 'userId',
 });
 
 User.belongsToMany(Role, {
-  through: User_Role,
+  through: UserRole,
   foreignKey: 'userId',
   otherKey: 'roleId',
 });
@@ -36,8 +36,17 @@ User.hasOne(Token, {
     await sequelize.authenticate();
     await User.sync();
     await Role.sync();
-    await User_Role.sync();
+    await UserRole.sync();
     await Token.sync();
+    await Role.findOrCreate({
+      where: { name: 'ROLE_USER' },
+    });
+    await Role.findOrCreate({
+      where: { name: 'ROLE_ADMIN' },
+    });
+    await Role.findOrCreate({
+      where: { name: 'ROLE_TEACHER' },
+    });
     // await User.sync({ force: true });
     // console.log(await User.findAll());
     console.log('Connection has been established successfully.');

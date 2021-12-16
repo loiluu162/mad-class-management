@@ -1,4 +1,7 @@
-const UserRepo = require('../users/repo');
+const { UserRepo, TokenRepo, RoleRepo } = require('../users/repo');
+const { sequelize } = require('../../db');
+const { Op } = require('sequelize');
+const { v4: uuid } = require('uuid');
 const {
   PasswordUtils,
   TokenUtils,
@@ -9,52 +12,104 @@ const {
 const {
   EMAIL_CONFIRMATION_PURPOSE,
   PASSWORD_RESET_PURPOSE,
+  ROLE_USER,
+  REFRESH_TOKEN_PURPOSE,
 } = require('../../constants');
+const { generateAccessToken } = require('../../utils/token');
 
 const login = async (req) => {
   catchValidationError(req);
   const { email, password } = req.body;
-  const user = await UserRepo.getUserByEmail(email);
+  const user = await UserRepo.findOne({ email });
   if (!user) throw Error('User not found');
   if (!user.enabled) {
     throw Error('User not verified. Please check your email for confirmation');
   }
   const pwMatch = await PasswordUtils.compare(password, user.password);
-  if (pwMatch) {
-    // setUserAuthenticated(req, user);
-    return true;
+  if (!pwMatch) {
+    throw Error('Password wrong');
   }
-  throw Error('Password wrong');
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = getRefreshToken(user.id);
+  const authorities = (await user.getRoles()).map((role) => role.name);
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    roles: authorities,
+    accessToken,
+    refreshToken,
+  };
 };
 
 const signup = async (req) => {
   catchValidationError(req);
-  const { name, password, email } = req.body;
+  const { name, password, email, roles = [ROLE_USER] } = req.body;
   // encrypt password
   const hashedPw = await PasswordUtils.hash(password);
-  // save on db
-  const newUserId = await UserRepo.registerNewAccount(email, name, hashedPw);
-  // create token
-  const token = await createVerificationToken(newUserId);
-  // send email
-  await EmailUtils.sendVerification(email, token);
+  const t = await sequelize.transaction();
+  try {
+    const newUser = await UserRepo.create(
+      {
+        email,
+        name,
+        password: hashedPw,
+      },
+      { transaction: t }
+    );
+    const rolesData = await RoleRepo.findAll({
+      name: {
+        [Op.or]: roles,
+      },
+    });
+    await newUser.setRoles(rolesData, { transaction: t });
+    // create token
+    const token = await createVerificationToken(newUser.id, { transaction: t });
 
-  // req.session.email = email;
-  // req.session.userId = newUserId;
+    await t.commit();
+
+    // send email
+    await EmailUtils.sendVerification(email, token);
+  } catch (err) {
+    await t.rollback();
+    throw new Error('Something went wrong');
+  }
 };
 
 const isExistsEmail = async (email) => {
   return await UserRepo.isExistsEmail(email);
 };
 
-const createVerificationToken = async (userId) => {
+const createVerificationToken = async (userId, options = {}) => {
   const token = await TokenUtils.generate();
-  return await UserRepo.createToken(userId, token, EMAIL_CONFIRMATION_PURPOSE);
+  const expiresAt = new Date();
+
+  expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
+  return await TokenRepo.create(
+    {
+      userId,
+      token,
+      purpose: EMAIL_CONFIRMATION_PURPOSE,
+      expiresAt,
+    },
+    options
+  );
 };
 
-const createPasswordResetToken = async (userId) => {
+const createPasswordResetToken = async (userId, options = {}) => {
   const token = await TokenUtils.generate();
-  return await UserRepo.createToken(userId, token, PASSWORD_RESET_PURPOSE);
+  const expiresAt = new Date();
+
+  expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
+  return await TokenRepo.create(
+    {
+      userId,
+      token,
+      purpose: PASSWORD_RESET_PURPOSE,
+      expiresAt,
+    },
+    options
+  );
 };
 
 const verifyEmail = async (req) => {
@@ -62,10 +117,12 @@ const verifyEmail = async (req) => {
 
   const { code } = req.body;
 
-  const { userId, id } = await UserRepo.getValidToken(
-    code,
-    EMAIL_CONFIRMATION_PURPOSE
-  );
+  const { userId, id } = await TokenRepo.findOne({
+    token: code,
+    purpose: EMAIL_CONFIRMATION_PURPOSE,
+    expiresAt: { [Op.lt]: new Date() },
+    usedAt: { [Op.eq]: null },
+  });
   // const user = await UserRepo.getUserById(userId);
   // setUserAuthenticated(req, user);
 
@@ -85,10 +142,12 @@ const resetPassword = async (req) => {
   const { code, newPassword } = req.body;
   // hash password
   const hashedPw = PasswordUtils.hash(newPassword);
-  const { userId, id } = await UserRepo.getValidToken(
-    code,
-    PASSWORD_RESET_PURPOSE
-  );
+  const { userId, id } = await TokenRepo.findOne({
+    token: code,
+    purpose: PASSWORD_RESET_PURPOSE,
+    expiresAt: { [Op.lt]: new Date() },
+    usedAt: { [Op.eq]: null },
+  });
   // const user = await UserRepo.getUserById(userId);
 
   // setUserAuthenticated(req, user);
@@ -97,7 +156,7 @@ const resetPassword = async (req) => {
   await UserRepo.markTokenUsed(id);
 
   // user not enabled
-  if (!(await UserRepo.isExistsUserId(userId))) {
+  if (!(await UserRepo.findById(userId))) {
     await UserRepo.verifyUser(userId);
   }
   // change password
@@ -125,6 +184,28 @@ const changePassword = async (req) => {
   return UserRepo.resetPassword(userId, hashedNewPassword);
 };
 
+const getRefreshToken = async (userId) => {
+  const refreshToken = await TokenRepo.findOne({
+    userId: userId,
+    purpose: REFRESH_TOKEN_PURPOSE,
+    expiresAt: { [Op.lt]: new Date() },
+  });
+  if (!refreshToken) {
+    const expiresAt = new Date();
+
+    expiresAt.setSeconds(expiresAt.getSeconds() + 10000000);
+
+    const token = uuid();
+    await TokenRepo.create({
+      token,
+      purpose: REFRESH_TOKEN_PURPOSE,
+      expiresAt,
+      userId: userId,
+    });
+    return token;
+  }
+  return refreshToken.token;
+};
 // const setUserAuthenticated = (req, user) => {
 //   // TODO: I dont know why this is not working, it take me a hour to find out error happened here
 //   // req.session = {
@@ -138,6 +219,14 @@ const changePassword = async (req) => {
 //   // req.session.email = user.email;
 //   // req.session.userId = user.id;
 //   // req.session.photoUrl = user.photo_url;
+// };
+// const setTokenCookie = (res, token) => {
+//   // create http only cookie with refresh token that expires in 7 days
+//   const cookieOptions = {
+//     httpOnly: true,
+//     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+//   };
+//   res.cookie('refreshToken', token, cookieOptions);
 // };
 
 module.exports = {

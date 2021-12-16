@@ -5,7 +5,7 @@ module.exports = (sequelize, DataTypes) => {
       autoIncrement: true,
       primaryKey: true,
     },
-    expires_at: {
+    expiresAt: {
       type: DataTypes.DATE,
     },
     token: {
@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING(50),
       allowNull: false,
     },
-    used_at: {
+    usedAt: {
       type: DataTypes.DATE,
     },
   });

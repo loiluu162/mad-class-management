@@ -1,10 +1,10 @@
 const LoginService = require('./service');
 const { catchAsync } = require('../../utils');
-const { messageResponse } = require('../../utils/response');
+const { messageResponse } = require('../../utils/responseWrapper');
 
 const login = catchAsync(async (req, res, next) => {
-  await LoginService.login(req);
-  return messageResponse(res, 'Successfully logged in');
+  const data = await LoginService.login(req);
+  return messageResponse(res, 'Successfully logged in', data);
 });
 
 const signup = catchAsync(async (req, res, next) => {

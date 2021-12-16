@@ -11,9 +11,14 @@ const emailConfig = {
   pass: process.env.EMAIL_PASSWORD,
   host: process.env.EMAIL_HOST_PROVIDER,
 };
-const accessTokenSecret = process.env.ACCESS_TOKEN_SECRET;
+const jwtConfig = {
+  accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,
+  refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
+  accessTokenExpireIn: process.env.ACCESS_TOKEN_EXPIRE_IN,
+  refreshTokenExpireIn: process.env.REFRESH_TOKEN_EXPIRE_IN,
+};
 module.exports = {
-  accessTokenSecret,
+  jwtConfig,
   redisStore,
   databaseConnectionString,
   emailConfig,
