@@ -8,7 +8,6 @@ const { accessTokenSecret } = require('../config').tokenConfig;
 const AppError = require('../utils/appError');
 
 const verifyToken = async (req, res, next) => {
-  console.log(req.headers);
   if (
     req.headers.authorization &&
     req.headers.authorization.startsWith('Bearer')
@@ -49,20 +48,26 @@ const verifyToken = async (req, res, next) => {
 };
 
 const hasAnyRole = (requiredRoles) => {
-  return (req, res, next) => {
-    const user = UserRepo.findById(req.userId);
-    user.getRoles().then((roles) => {
-      if (roles.some((role) => requiredRoles.includes(role))) {
-        next();
+  return [
+    verifyToken,
+    async (req, res, next) => {
+      if (typeof requiredRoles === 'string') {
+        requiredRoles = [requiredRoles];
       }
-      return next(
-        new AppError(
-          'Required at least one role in ' + requiredRoles,
-          StatusCodes.FORBIDDEN
-        )
-      );
-    });
-  };
+      const user = await UserRepo.findById(req.userId);
+      user.getRoles().then((roles) => {
+        if (roles.some((role) => requiredRoles.includes(role.name))) {
+          return next();
+        }
+        return next(
+          new AppError(
+            'Required at least one role in ' + requiredRoles,
+            StatusCodes.FORBIDDEN
+          )
+        );
+      });
+    },
+  ];
 };
 
 const authJwt = {

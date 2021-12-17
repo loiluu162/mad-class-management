@@ -51,6 +51,7 @@ const signup = async (req) => {
   // encrypt password
   const hashedPw = await PasswordUtils.hash(password);
   const t = await sequelize.transaction();
+  let token = '';
   try {
     const newUser = await UserRepo.create(
       {
@@ -67,16 +68,16 @@ const signup = async (req) => {
     });
     await newUser.setRoles(rolesData, { transaction: t });
     // create token
-    const token = await createVerificationToken(newUser.id, { transaction: t });
+    token = await createVerificationToken(newUser.id, { transaction: t });
 
     await t.commit();
-
     // send email
-    await EmailUtils.sendVerification(email, token);
   } catch (err) {
+    console.error(err);
     await t.rollback();
     throw new Error('Something went wrong');
   }
+  await EmailUtils.sendVerification(email, token);
 };
 
 const isExistsEmail = async (email) => {

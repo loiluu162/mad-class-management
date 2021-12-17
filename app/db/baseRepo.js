@@ -22,4 +22,8 @@ module.exports = class BaseRepository {
   findAll(condition = {}) {
     return this.model.findAll({ where: condition });
   }
+
+  delete(condition = {}) {
+    return this.model.destroy({ where: condition });
+  }
 };
