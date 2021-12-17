@@ -19,6 +19,7 @@ const { generateAccessToken } = require('../../utils/token');
 
 const { verificationExpireIn, passwordResetExpireIn, refreshTokenExpireIn } =
   require('../../config').tokenConfig;
+const AppError = require('../../utils/appError');
 
 const login = async (req) => {
   catchValidationError(req);
@@ -228,6 +229,35 @@ const markTokenUsed = async (id) => {
   );
 };
 
+const refreshToken = async (req) => {
+  const { refreshToken: requestToken } = req.body;
+  if (!requestToken) {
+    throw new AppError('Refresh Token is required');
+  }
+
+  const refreshToken = TokenRepo.findOne({
+    token: requestToken,
+    purpose: REFRESH_TOKEN_PURPOSE,
+  });
+  if (!refreshToken) {
+    throw new AppError('Refresh Token is not found');
+  }
+  if (refreshToken.expiresAt < new Date()) {
+    throw new AppError(
+      'Refresh token was expired. Please make a new signin request'
+    );
+  }
+
+  const user = await refreshToken.getUser();
+
+  const newAccessToken = generateAccessToken(user.id);
+
+  return {
+    accessToken: newAccessToken,
+    refreshToken: refreshToken.token,
+  };
+};
+
 module.exports = {
   login,
   signup,
@@ -239,4 +269,5 @@ module.exports = {
   verifyPasswordResetToken,
   requestForgotPassword,
   changePassword,
+  refreshToken,
 };

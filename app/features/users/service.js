@@ -8,24 +8,12 @@ const getUsers = async function (req) {
   return await UserRepo.findAll();
 };
 
-const isExistsUserId = async function (id) {
-  return (await UserRepo.findById(id)) !== null;
-};
-
-const getUserById = async function (req) {
-  // var users = await User.find(query);
-  const { id } = req.params;
+const getUser = async function (req) {
+  const { id } = req;
   return await UserRepo.findById(id);
-};
-const getUserByEmail = async function (req) {
-  // var users = await User.find(query);
-  const { email } = req.params;
-  return await UserRepo.findOne({ email });
 };
 
 module.exports = {
   getUsers,
-  isExistsUserId,
-  getUserById,
-  getUserByEmail,
+  getUser,
 };

@@ -1,15 +1,14 @@
 const express = require('express');
+const { verifyToken } = require('../../middlewares/verifyJwt');
 const router = express.Router();
 
-const {
-  getUsers,
-  getUserById,
-  updateUserInformation,
-} = require('./controller');
+const { getUser, updateUser } = require('./controller');
 
-router.get('/', getUsers);
-router.route('/:id').get(getUserById).put(updateUserInformation);
+// router.get('/', getUsers);
 
-router.get('/email/:email', getUsers);
+router.use(verifyToken);
+router.route('/').get(getUser).put(updateUser);
+
+// router.get('/email/:email', getUsers);
 
 module.exports = router;

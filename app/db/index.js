@@ -31,6 +31,7 @@ Class.belongsToMany(User, {
   through: Registration,
   foreignKey: 'classId',
   otherKey: 'userId',
+  as: 'students',
 });
 
 User.belongsToMany(Class, {
@@ -77,6 +78,7 @@ StudyTime.belongsTo(Class);
       where: { name: ROLE_ADMIN },
     });
     await Class.sync();
+    await Registration.sync();
     await StudyTime.sync();
     console.log('Connection has been established successfully.');
   } catch (error) {
@@ -91,6 +93,7 @@ module.exports = {
   Token,
   Class,
   StudyTime,
+  Registration,
 };
 
 // const sequelize = new Sequelize(

@@ -49,6 +49,11 @@ const changePassword = catchAsync(async (req, res, next) => {
   return messageResponse(res, 'Password successfully changed');
 });
 
+const refreshToken = catchAsync(async (req, res, next) => {
+  const tokens = await LoginService.refreshToken(req);
+  return messageResponse(res, 'Access token successfully refreshed', tokens);
+});
+
 module.exports = {
   login,
   signup,
@@ -58,4 +63,5 @@ module.exports = {
   verifyEmail,
   verifyPasswordResetToken,
   changePassword,
+  refreshToken,
 };

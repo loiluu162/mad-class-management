@@ -11,8 +11,8 @@ module.exports = class BaseRepository {
     return this.model.update(data, { where: condition });
   }
 
-  findById(_id) {
-    return this.model.findOne({ where: { id: _id } });
+  findById(_id, include = []) {
+    return this.model.findOne({ where: { id: _id }, include });
   }
 
   findOne(condition = {}) {

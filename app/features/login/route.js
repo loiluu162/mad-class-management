@@ -42,6 +42,9 @@ router.post(
   Validator.validate('verifyEmail'),
   LoginController.verifyEmail
 );
+
+router.post('/refreshtoken', LoginController.refreshToken);
+
 router.get('/testjwt', [verifyToken], (req, res, next) => {
   res.json(req.userId);
 });

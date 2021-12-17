@@ -1,7 +1,8 @@
 const { StatusCodes } = require('http-status-codes');
+const { User, StudyTime } = require('../../db');
 const AppError = require('../../utils/appError');
 const { ClassRepo } = require('./repo');
-
+const { REGISTRATION_ACCEPTED } = require('../../constants');
 const getAllClasses = async () => {
   return await ClassRepo.findAll();
 };
@@ -20,7 +21,19 @@ const createNewClass = async (req) => {
 
 const getClass = async (req) => {
   const { id } = req.params;
-  const classRes = await ClassRepo.findById(id);
+  const classRes = await ClassRepo.findById(id, [
+    {
+      model: User,
+      as: 'students',
+      through: {
+        where: {
+          status: REGISTRATION_ACCEPTED,
+        },
+        attributes: [],
+      },
+    },
+    { model: StudyTime },
+  ]);
   if (!classRes) throw new AppError('Class not found', StatusCodes.NOT_FOUND);
   return classRes;
 };

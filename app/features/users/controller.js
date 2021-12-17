@@ -5,23 +5,18 @@ const getUsers = catchAsync(async (req, res, next) => {
   const users = await UserService.getUsers(req);
   return messageResponse(res, 'Successfully users retrieved', users);
 });
-const getUserById = catchAsync(async (req, res, next) => {
+const getUser = catchAsync(async (req, res, next) => {
   const user = await UserService.getUserById(req);
-  return messageResponse(res, 'Successfully users retrieved', user);
-});
-const getUserByEmail = catchAsync(async (req, res, next) => {
-  const user = await UserService.getUserByEmail(req);
-  return messageResponse(res, 'Successfully users retrieved', user);
+  return messageResponse(res, 'Successfully user info retrieved', user);
 });
 
-const updateUserInformation = catchAsync(async (req, res, next) => {
+const updateUser = catchAsync(async (req, res, next) => {
   const user = await UserService.getUserByEmail(req);
-  return messageResponse(res, 'Successfully users retrieved', user);
+  return messageResponse(res, 'Successfully updated user info', user);
 });
 
 module.exports = {
   getUsers,
-  getUserById,
-  getUserByEmail,
-  updateUserInformation,
+  getUser,
+  updateUser,
 };
