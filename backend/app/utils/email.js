@@ -28,6 +28,23 @@ const sendPasswordReset = async (to, token) => {
   );
 };
 
+const sendAcceptationEmail = async (to, token) => {
+  return await send(
+    to,
+    token,
+    'Accept your registration',
+    'Your password reset code (valid for only 60 minutes)'
+  );
+};
+const sendRejectionEmail = async (to, token) => {
+  return await send(
+    to,
+    token,
+    'Reject your registration',
+    'Your password reset code (valid for only 60 minutes)'
+  );
+};
+
 const send = async (to, token, template, subject) => {
   const text = 'Your code: ' + token;
   const mailOptions = {
@@ -38,4 +55,9 @@ const send = async (to, token, template, subject) => {
   };
   return await transporter.sendMail(mailOptions);
 };
-module.exports = { sendPasswordReset, sendVerification };
+module.exports = {
+  sendPasswordReset,
+  sendVerification,
+  sendAcceptationEmail,
+  sendRejectionEmail,
+};

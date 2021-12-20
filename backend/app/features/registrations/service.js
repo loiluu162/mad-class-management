@@ -2,21 +2,33 @@ const { StatusCodes } = require('http-status-codes');
 const {
   REGISTRATION_PENDING,
   REGISTRATION_CANCELED,
+  REGISTRATION_ACCEPTED,
+  REGISTRATION_REJECTED,
 } = require('../../constants');
+
+const {
+  sendAcceptationEmail,
+  sendRejectionEmail,
+} = require('../../utils/email');
+
 const AppError = require('../../utils/appError');
 const { RegistrationRepo } = require('./repo');
 const { Op } = require('sequelize');
+
 const getAllRegistrations = async () => {
   return await RegistrationRepo.findAll();
 };
+
 const createNewRegistration = async (req) => {
   const { classId } = req.body;
   const { userId } = req;
+
   // TODO: check number of students registered
   const registration = await RegistrationRepo.findOne({
     userId,
     classId,
   });
+
   if (registration) {
     if (registration.status !== REGISTRATION_CANCELED) {
       throw new AppError(
@@ -29,6 +41,7 @@ const createNewRegistration = async (req) => {
       { userId, classId }
     );
   }
+
   await RegistrationRepo.create({ userId, classId });
 };
 
@@ -49,12 +62,12 @@ const cancelRegistration = async (req) => {
 };
 
 const changeStatusRegistration = async (req) => {
-  const { classId } = req.params;
-  const { status } = req.body;
+  const { status, classId, userId } = req.body;
   const success = (
     await RegistrationRepo.update(
       { status },
       {
+        userId,
         classId,
         status: {
           [Op.not]: REGISTRATION_CANCELED,
@@ -67,6 +80,15 @@ const changeStatusRegistration = async (req) => {
       'Registration is not found or not canceled',
       StatusCodes.BAD_REQUEST
     );
+  }
+  if (status === REGISTRATION_ACCEPTED) {
+    // await EmailUtils.send
+    // await sendAcceptationEmail(to);
+  }
+  if (status === REGISTRATION_REJECTED) {
+    // await EmailUtils.send
+    // await sendRejectionEmail(to);
+
   }
   return success;
 };

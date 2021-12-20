@@ -16,6 +16,6 @@ router.post('/cancel/:classId', cancelRegistration);
 
 router.use(hasAnyRole(ROLE_ADMIN));
 router.route('/').get(getAllRegistrations);
-router.put('/changeStatus/:classId', changeStatusRegistration);
+router.put('/changeStatus', changeStatusRegistration);
 
 module.exports = router;
