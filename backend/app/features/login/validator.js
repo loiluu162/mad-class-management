@@ -1,5 +1,6 @@
 const { body } = require('express-validator');
 const { UserRepo, TokenRepo } = require('../users/repo');
+const { Op } = require('sequelize');
 
 const {
   EMAIL_CONFIRMATION_PURPOSE,
@@ -26,7 +27,7 @@ exports.validate = (method) => {
           return UserRepo.findOne({ email }).then((existed) => {
             if (existed) {
               return Promise.reject(
-                new AppError('E-mail already in use', StatusCodes.FORBIDDEN)
+                new AppError('Email already in use', StatusCodes.FORBIDDEN)
               );
             }
           });
@@ -51,17 +52,20 @@ exports.validate = (method) => {
     case 'verifyPasswordResetToken': {
       return [
         body('code').custom((code) => {
-          return UserRepo.getValidToken(code, PASSWORD_RESET_PURPOSE).then(
-            (token) => {
-              if (!token) {
-                return Promise.reject(
-                  new AppError(
-                    'Password reset code was wrong or had been expired or used'
-                  )
-                );
-              }
+          return TokenRepo.findOne({
+            token: code,
+            purpose: PASSWORD_RESET_PURPOSE,
+            expiresAt: { [Op.gt]: new Date() },
+            usedAt: { [Op.eq]: null },
+          }).then((token) => {
+            if (!token) {
+              return Promise.reject(
+                new AppError(
+                  'Password reset code was wrong or had been expired or used'
+                )
+              );
             }
-          );
+          });
         }),
       ];
     }
@@ -96,6 +100,8 @@ exports.validate = (method) => {
           return TokenRepo.findOne({
             token: code,
             purpose: PASSWORD_RESET_PURPOSE,
+            expiresAt: { [Op.gt]: new Date() },
+            usedAt: { [Op.eq]: null },
           }).then((token) => {
             if (!token) {
               return Promise.reject(
@@ -122,21 +128,23 @@ exports.validate = (method) => {
     }
     case 'changePassword': {
       return [
-        body('oldPassword').isLength({ min: 6 }),
-        body('oldPassword').custom((oldPassword, { req }) => {
+        body('currentPassword').isLength({ min: 6 }),
+        body('currentPassword').custom((currentPassword, { req }) => {
           const { userId } = req;
           return UserRepo.findById(userId).then(async (user) => {
             if (!user) {
               return Promise.reject(new Error('User not found'));
             }
 
-            if (!(await PasswordUtils.compare(oldPassword, user.password))) {
+            if (
+              !(await PasswordUtils.compare(currentPassword, user.password))
+            ) {
               throw new AppError('Current password wrong');
             }
           });
         }),
         body('newPassword').custom((newPassword, { req }) => {
-          if (newPassword === req.body.oldPassword) {
+          if (newPassword === req.body.currentPassword) {
             throw new AppError(
               'New password need to be different from current one'
             );

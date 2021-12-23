@@ -20,6 +20,7 @@ const { generateAccessToken } = require('../../utils/token');
 const { verificationExpireIn, passwordResetExpireIn, refreshTokenExpireIn } =
   require('../../config').tokenConfig;
 const AppError = require('../../utils/appError');
+const { StatusCodes } = require('http-status-codes');
 
 const login = async (req) => {
   catchValidationError(req);
@@ -27,23 +28,16 @@ const login = async (req) => {
   const user = await UserRepo.findOne({ email });
   if (!user) throw Error('User not found');
   if (!user.enabled) {
-    throw Error('User not verified. Please check your email for confirmation');
+    throw new AppError(
+      'User not verified. Please check your email for confirmation',
+      StatusCodes.BAD_REQUEST
+    );
   }
   const pwMatch = await PasswordUtils.compare(password, user.password);
   if (!pwMatch) {
-    throw Error('Password wrong');
+    throw new AppError('Password wrong', StatusCodes.BAD_REQUEST);
   }
-  const accessToken = generateAccessToken(user.id);
-  const refreshToken = await getRefreshToken(user.id);
-  const authorities = (await user.getRoles()).map((role) => role.name);
-  return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    roles: authorities,
-    accessToken,
-    refreshToken,
-  };
+  return generateUserCredential(user.id);
 };
 
 const signup = async (req) => {
@@ -127,13 +121,15 @@ const verifyEmail = async (req) => {
   const { userId, id } = await TokenRepo.findOne({
     token: code,
     purpose: EMAIL_CONFIRMATION_PURPOSE,
-    expiresAt: { [Op.lt]: new Date() },
+    expiresAt: { [Op.gt]: new Date() },
     usedAt: { [Op.eq]: null },
   });
 
-  await UserRepo.verifyUser(userId);
+  await enableUser(userId);
 
-  return await markTokenUsed(id);
+  await markTokenUsed(id);
+
+  return generateUserCredential(userId);
 };
 
 const verifyPasswordResetToken = async (req) => {
@@ -146,22 +142,46 @@ const resetPassword = async (req) => {
   catchValidationError(req);
 
   const { code, newPassword } = req.body;
-  const hashedPw = PasswordUtils.hash(newPassword);
+  const hashedPw = await PasswordUtils.hash(newPassword);
+
   const { userId, id } = await TokenRepo.findOne({
     token: code,
     purpose: PASSWORD_RESET_PURPOSE,
-    expiresAt: { [Op.lt]: new Date() },
+    expiresAt: { [Op.gt]: new Date() },
     usedAt: { [Op.eq]: null },
   });
+  const t = await sequelize.transaction();
 
-  await markTokenUsed(id);
+  await markTokenUsed(id, { transaction: t });
 
   // user not enabled
   if (!(await UserRepo.findById(userId))) {
-    await UserRepo.verifyUser(userId);
+    await enableUser(userId, { transaction: t });
   }
   // change password
-  return await UserRepo.resetPassword(userId, hashedPw);
+  await UserRepo.update(
+    { password: hashedPw },
+    { id: userId },
+    { transaction: t }
+  );
+
+  return generateUserCredential(userId);
+};
+
+const generateUserCredential = async (userId) => {
+  const user = await UserRepo.findById(userId);
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = await getRefreshToken(user.id);
+  const authorities = (await user.getRoles()).map((role) => role.name);
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    roles: authorities,
+    accessToken,
+    refreshToken,
+    name: user.name,
+  };
 };
 
 const requestForgotPassword = async (req) => {
@@ -211,21 +231,22 @@ const getRefreshToken = async (userId) => {
   return refreshToken.token;
 };
 
-// const setTokenCookie = (res, token) => {
-//   // create http only cookie with refresh token that expires in 7 days
-//   const cookieOptions = {
-//     httpOnly: true,
-//     expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-//   };
-//   res.cookie('refreshToken', token, cookieOptions);
-// };
-
-const markTokenUsed = async (id) => {
-  return await TokenRepo.update(
-    { token_used_at: new Date() },
+const enableUser = async (id, options = {}) => {
+  return await UserRepo.update(
+    { enabled: true },
     {
       id,
-    }
+    },
+    options
+  );
+};
+const markTokenUsed = async (id, options = {}) => {
+  return await TokenRepo.update(
+    { usedAt: new Date() },
+    {
+      id,
+    },
+    options
   );
 };
 

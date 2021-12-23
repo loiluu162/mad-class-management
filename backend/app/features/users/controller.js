@@ -11,12 +11,17 @@ const getUser = catchAsync(async (req, res, next) => {
 });
 
 const updateUser = catchAsync(async (req, res, next) => {
-  const user = await UserService.getUserByEmail(req);
+  const user = await UserService.updateUser(req);
   return messageResponse(res, 'Successfully updated user info', user);
+});
+const changeAvatar = catchAsync(async (req, res, next) => {
+  await UserService.changeAvatar(req);
+  return messageResponse(res, 'Successfully change your avatar');
 });
 
 module.exports = {
   getUsers,
   getUser,
   updateUser,
+  changeAvatar,
 };

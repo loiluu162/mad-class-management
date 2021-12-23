@@ -12,8 +12,18 @@ const getUser = async function (req) {
   const { id } = req;
   return await UserRepo.findById(id);
 };
+const changeAvatar = async function (req) {
+  const { id } = req;
+  return await UserRepo.findById(id);
+};
+const updateUser = async function (req) {
+  const { id } = req;
+  return await UserRepo.findById(id);
+};
 
 module.exports = {
   getUsers,
   getUser,
+  changeAvatar,
+  updateUser,
 };

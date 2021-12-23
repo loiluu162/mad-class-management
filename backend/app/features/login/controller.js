@@ -25,13 +25,13 @@ const requestForgotPassword = catchAsync(async (req, res, next) => {
   await LoginService.requestForgotPassword(req);
   return messageResponse(
     res,
-    'Successfully signed up. Please check email for confirmation'
+    'Successfully requested password email. Please check email for confirmation'
   );
 });
 
 const resetPassword = catchAsync(async (req, res, next) => {
-  await LoginService.resetPassword(req);
-  return messageResponse(res, 'Successfully reset your password');
+  const data = await LoginService.resetPassword(req);
+  return messageResponse(res, 'Successfully reset your password', data);
 });
 
 const verifyPasswordResetToken = catchAsync(async (req, res, next) => {
@@ -40,8 +40,8 @@ const verifyPasswordResetToken = catchAsync(async (req, res, next) => {
 });
 
 const verifyEmail = catchAsync(async (req, res, next) => {
-  await LoginService.verifyEmail(req);
-  return messageResponse(res, 'Email successfully verified');
+  const data = await LoginService.verifyEmail(req);
+  return messageResponse(res, 'Email successfully verified', data);
 });
 
 const changePassword = catchAsync(async (req, res, next) => {

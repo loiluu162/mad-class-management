@@ -7,16 +7,16 @@ module.exports = class BaseRepository {
     return this.model.create(data, options);
   }
 
-  update(data, condition) {
-    return this.model.update(data, { where: condition });
+  update(data, condition, options = {}) {
+    return this.model.update(data, { where: condition }, options);
   }
 
   findById(_id, include = []) {
     return this.model.findOne({ where: { id: _id }, include });
   }
 
-  findOne(condition = {}) {
-    return this.model.findOne({ where: condition });
+  findOne(condition = {}, include = []) {
+    return this.model.findOne({ where: condition, include });
   }
 
   findAll(condition = {}) {
