@@ -1,6 +1,7 @@
 const UserService = require('./service');
 const { catchAsync } = require('../../utils');
 const { messageResponse } = require('../../utils/responseWrapper');
+
 const getUsers = catchAsync(async (req, res, next) => {
   const users = await UserService.getUsers(req);
   return messageResponse(res, 'Successfully users retrieved', users);
@@ -15,8 +16,8 @@ const updateUser = catchAsync(async (req, res, next) => {
   return messageResponse(res, 'Successfully updated user info', user);
 });
 const changeAvatar = catchAsync(async (req, res, next) => {
-  await UserService.changeAvatar(req);
-  return messageResponse(res, 'Successfully change your avatar');
+  const data = await UserService.handleSaveAvatar(req);
+  return messageResponse(res, 'Successfully change your avatar', data);
 });
 
 module.exports = {

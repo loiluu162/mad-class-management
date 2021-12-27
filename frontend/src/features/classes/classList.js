@@ -10,9 +10,6 @@ const ClassExcerpt = ({ classItem }) => {
   return (
     <article className='post-excerpt' key={classItem.id}>
       <h3>{classItem.name}</h3>
-      {/* <p className='post-content'>{classItem.content.substring(0, 100)}</p> */}
-
-      {/* <ReactionButtons post={post} /> */}
       <Link
         to={`/admin/classes/${classItem.id}`}
         className='button muted-button'
@@ -32,13 +29,8 @@ export const ClassesList = () => {
   const error = useSelector((state) => state.classes.error);
 
   useEffect(() => {
-    if (
-      classStatus === 'idle' ||
-      (classes.length === 0 && classStatus !== 'succeed')
-    ) {
-      dispatch(fetchClasses());
-    }
-  }, [classStatus, dispatch, classes]);
+    dispatch(fetchClasses());
+  }, [dispatch]);
 
   let content;
 
@@ -47,9 +39,9 @@ export const ClassesList = () => {
   }
 
   if (classes.length) {
-    content = classes.map((item) => (
-      <ClassExcerpt key={item.id} classItem={item} />
-    ));
+    content = classes.map(
+      (item) => item && <ClassExcerpt key={item.id} classItem={item} />
+    );
   }
 
   return (

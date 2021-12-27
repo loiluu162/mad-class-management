@@ -8,8 +8,8 @@ const getAllClasses = catchAsync(async (req, res, next) => {
 });
 
 const createNewClass = catchAsync(async (req, res, next) => {
-  await ClassService.createNewClass(req);
-  return messageResponse(res, 'successfully created classes');
+  const data = await ClassService.createNewClass(req);
+  return messageResponse(res, 'successfully created classes', data);
 });
 
 const getClass = catchAsync(async (req, res, next) => {

@@ -19,8 +19,8 @@ module.exports = class BaseRepository {
     return this.model.findOne({ where: condition, include });
   }
 
-  findAll(condition = {}) {
-    return this.model.findAll({ where: condition });
+  findAll(condition = {}, include = {}) {
+    return this.model.findAll({ where: condition, include });
   }
 
   delete(condition = {}) {

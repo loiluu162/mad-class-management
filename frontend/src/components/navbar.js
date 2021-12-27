@@ -11,11 +11,9 @@ import { userHasAnyRoles } from '../utils';
 function Navbar() {
   const loggedIn = useSelector(selectLoggedInStatus);
   const { roles = [] } = useSelector(selectCurrentUser);
-
   const isAdmin = userHasAnyRoles(roles, [ROLE_ADMIN]);
-
   return (
-    <nav className='navbar navbar-expand-lg navbar-light fixed-top'>
+    <nav className='navbar navbar-expand-lg navbar-light sticky-top'>
       <div className='container'>
         <Link className='navbar-brand' to={'/'}>
           Madison
@@ -45,7 +43,7 @@ function Navbar() {
                 <li className='nav-item'>
                   <Link
                     className='nav-link'
-                    to={isAdmin ? '/admin/class' : '/class'}
+                    to={isAdmin ? '/admin/classes' : '/classes'}
                   >
                     Class
                   </Link>

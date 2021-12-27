@@ -46,7 +46,7 @@ const signup = async (req) => {
   // encrypt password
   const hashedPw = await PasswordUtils.hash(password);
   const t = await sequelize.transaction();
-  let token = '';
+  let token;
   try {
     const newUser = await UserRepo.create(
       {

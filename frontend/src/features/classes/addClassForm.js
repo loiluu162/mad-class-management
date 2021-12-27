@@ -1,27 +1,18 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { selectClassById, classUpdated, classUpdate } from './classSlice';
-import { Link } from 'react-router-dom';
-import { TimeAgo } from './timeAgo';
-import { ClassAuthor } from './classAuthor';
-import { useHistory } from 'react-router-dom';
 import DatePicker from 'react-date-picker';
+import { useDispatch } from 'react-redux';
+// import { useHistory } from 'react-router-dom';
+import { addNewClass } from './classSlice';
 
-const EditClass = ({ match }) => {
-  const { classId } = match.params;
-
-  const classItem = useSelector((state) =>
-    selectClassById(state, Number.parseInt(classId))
-  );
-
-  const [startDate, setStartDate] = useState(new Date(classItem.startDate));
-  const [endDate, setEndDate] = useState(new Date(classItem.endDate));
-  const [maxStudents, setMaxStudents] = useState(classItem.maxStudents);
-  const [name, setName] = useState(classItem.name);
+const AddClassForm = () => {
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [maxStudents, setMaxStudents] = useState(50);
+  const [name, setName] = useState('');
 
   const dispatch = useDispatch();
 
-  const history = useHistory();
+  //   const history = useHistory();
 
   const onTitleChanged = (e) => setName(e.target.value);
   const onMaxStudentsChanged = (e) => setMaxStudents(e.target.value);
@@ -32,24 +23,17 @@ const EditClass = ({ match }) => {
     e.preventDefault();
     if (name && startDate && endDate && maxStudents) {
       dispatch(
-        classUpdate({
-          id: classId,
+        addNewClass({
           name,
           startDate,
           endDate,
           maxStudents,
         })
       );
-      history.push(`/admin/classes/${classId}`);
+      //   history.push(`/admin/classes`);
     }
   };
-  if (!classItem) {
-    return (
-      <section>
-        <h2>Class not found!</h2>
-      </section>
-    );
-  }
+
   return (
     <section>
       <h2>Edit Class</h2>
@@ -113,10 +97,10 @@ const EditClass = ({ match }) => {
             onChange={onContentChanged}
           />
         </div> */}
-        <button type='submit'>Save Class</button>
+        <button type='submit'>Add Class</button>
       </form>
     </section>
   );
 };
 
-export default EditClass;
+export default AddClassForm;

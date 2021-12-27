@@ -1,4 +1,4 @@
-import { Switch, Route, BrowserRouter } from 'react-router-dom';
+import { Switch, Route, BrowserRouter as Router } from 'react-router-dom';
 import '../node_modules/bootstrap/dist/css/bootstrap.min.css';
 import React from 'react';
 import Navbar from './components/navbar';
@@ -25,73 +25,71 @@ function App() {
   return (
     <>
       <div className='App'>
-        <BrowserRouter>
-          <Navbar />
-          <div className='auth-wrapper'>
-            <div className='auth-inner'>
-              <Switch>
-                <ProtectedRoute path='/' exact component={Home} />
-                <ProtectedRoute path='/profile' exact component={Profile} />
-                <Route path='/about' exact component={About} />
-                {/* login route */}
-                <NotForLoggedInRoute path='/login' exact component={Login} />
-                <NotForLoggedInRoute path='/signup' exact component={Signup} />
-                <NotForLoggedInRoute
-                  path='/verifyEmail'
-                  exact
-                  component={VerifyEmail}
-                />
-                <NotForLoggedInRoute
-                  path='/forgotPassword'
-                  exact
-                  component={ForgotPassword}
-                />
-                <NotForLoggedInRoute
-                  path='/resetPassword'
-                  exact
-                  component={ResetPassword}
-                />
-                <ProtectedRoute
-                  path='/changePassword'
-                  exact
-                  component={ChangePassword}
-                />
-                {/* admin route */}
-                <ProtectedRoute
-                  requireRoles={['ROLE_ADMIN']}
-                  path='/admin/class'
-                  exact
-                  component={ClassManage}
-                />
-                <ProtectedRoute
-                  requireRoles={['ROLE_ADMIN']}
-                  path='/admin/registration'
-                  exact
-                  component={RegistrationManage}
-                />
-                <ProtectedRoute
-                  requireRoles={['ROLE_ADMIN']}
-                  path='/admin/classes/:classId'
-                  exact
-                  component={SingleClassPage}
-                />
-                <ProtectedRoute
-                  requireRoles={['ROLE_ADMIN']}
-                  path='/admin/editClass/:classId'
-                  exact
-                  component={EditClass}
-                />
-                {/* user route */}
-                <ProtectedRoute path='/class' exact component={UserClass} />
-                <ProtectedRoute
-                  path='/registration'
-                  exact
-                  component={UserRegistration}
-                />
-              </Switch>
-            </div>
+        <Navbar />
+        <div className='auth-wrapper'>
+          <div className='auth-inner'>
+            <Switch>
+              <ProtectedRoute path='/' exact component={Home} />
+              <ProtectedRoute path='/profile' exact component={Profile} />
+              <Route path='/about' exact component={About} />
+              {/* login route */}
+              <NotForLoggedInRoute path='/login' exact component={Login} />
+              <NotForLoggedInRoute path='/signup' exact component={Signup} />
+              <NotForLoggedInRoute
+                path='/verifyEmail'
+                exact
+                component={VerifyEmail}
+              />
+              <NotForLoggedInRoute
+                path='/forgotPassword'
+                exact
+                component={ForgotPassword}
+              />
+              <NotForLoggedInRoute
+                path='/resetPassword'
+                exact
+                component={ResetPassword}
+              />
+              <ProtectedRoute
+                path='/changePassword'
+                exact
+                component={ChangePassword}
+              />
+              {/* admin route */}
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
+                path='/admin/classes'
+                exact
+                component={ClassManage}
+              />
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
+                path='/admin/registration'
+                exact
+                component={RegistrationManage}
+              />
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
+                path='/admin/classes/:classId'
+                exact
+                component={SingleClassPage}
+              />
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
+                path='/admin/editClass/:classId'
+                exact
+                component={EditClass}
+              />
+              {/* user route */}
+              <ProtectedRoute path='/class' exact component={UserClass} />
+              <ProtectedRoute
+                path='/registration'
+                exact
+                component={UserRegistration}
+              />
+            </Switch>
           </div>
-        </BrowserRouter>
+        </div>
         <Toaster />
       </div>
     </>

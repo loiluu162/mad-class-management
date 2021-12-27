@@ -1,10 +1,10 @@
 const nodemailer = require('nodemailer');
 // const htmlToText = require('html-to-text');
-const { from, user, pass, host } = require('../config').emailConfig;
+const { from, user, pass, host, port } = require('../config').emailConfig;
 
 const transporter = nodemailer.createTransport({
   host: host,
-  port: 587,
+  port: port,
   auth: {
     user: user,
     pass: pass,
@@ -28,25 +28,32 @@ const sendPasswordReset = async (to, token) => {
   );
 };
 
-const sendAcceptationEmail = async (to, token) => {
+const sendAcceptationEmail = async (to, text) => {
   return await send(
     to,
-    token,
+    text,
     'Accept your registration',
-    'Your password reset code (valid for only 60 minutes)'
+    'Accept your registration'
   );
 };
-const sendRejectionEmail = async (to, token) => {
+const sendRegistrationEmail = async (to, text) => {
   return await send(
     to,
-    token,
+    text,
+    'your registration has been submitted',
+    'your registration has been submitted'
+  );
+};
+const sendRejectionEmail = async (to, text) => {
+  return await send(
+    to,
+    text,
     'Reject your registration',
-    'Your password reset code (valid for only 60 minutes)'
+    'Reject your registration'
   );
 };
 
-const send = async (to, token, template, subject) => {
-  const text = 'Your code: ' + token;
+const send = async (to, text, template, subject) => {
   const mailOptions = {
     from: from,
     to: to,
@@ -60,4 +67,5 @@ module.exports = {
   sendVerification,
   sendAcceptationEmail,
   sendRejectionEmail,
+  sendRegistrationEmail,
 };

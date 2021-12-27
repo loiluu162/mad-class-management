@@ -61,8 +61,8 @@ User.hasOne(Token, {
   targetKey: 'id',
 });
 
-Class.hasMany(StudyTime);
-StudyTime.belongsTo(Class);
+Class.hasMany(StudyTime, { as: 'studyTimes' });
+StudyTime.belongsTo(Class, { as: 'class' });
 
 (async () => {
   try {

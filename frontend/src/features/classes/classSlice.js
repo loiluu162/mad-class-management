@@ -29,10 +29,53 @@ export const fetchClasses = createAsyncThunk(
   }
 );
 
-export const addNewPost = createAsyncThunk(
-  'classes/addNewPost',
-  async (initialPost) => {
-    const response = await client.post('/fakeApi/classes', initialPost);
+export const addNewClass = createAsyncThunk(
+  'classes/addNewClass',
+  async (
+    { name, startDate, endDate, maxStudents, studyTimes },
+    { dispatch, rejectWithValue, getState }
+  ) => {
+    const { accessToken = null } = getState().auth.user;
+
+    const response = await client.post(
+      '/classes',
+      {
+        name,
+        startDate,
+        endDate,
+        maxStudents,
+        studyTimes,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    return response;
+  }
+);
+export const classUpdate = createAsyncThunk(
+  'classes/updateClass',
+  async (
+    { id, name, startDate, endDate, maxStudents },
+    { dispatch, rejectWithValue, getState }
+  ) => {
+    const { accessToken = null } = getState().auth.user;
+
+    const response = await client.post(
+      `/classes/${id}`,
+      {
+        id,
+        name,
+        startDate,
+        endDate,
+        maxStudents,
+      },
+      {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    dispatch(classUpdated({ id, name, startDate, endDate, maxStudents }));
     return response.data;
   }
 );
@@ -48,12 +91,14 @@ const classesSlice = createSlice({
         existingPost.reactions[reaction]++;
       }
     },
-    postUpdated(state, action) {
-      const { id, title, content } = action.payload;
-      const existingPost = state.classes.find((post) => post.id === id);
+    classUpdated(state, action) {
+      const { id, name, startDate, endDate, maxStudents } = action.payload;
+      const existingPost = state.classes.find((post) => post.id == id);
       if (existingPost) {
-        existingPost.title = title;
-        existingPost.content = content;
+        existingPost.name = name;
+        existingPost.startDate = startDate;
+        existingPost.endDate = endDate;
+        existingPost.maxStudents = maxStudents;
       }
     },
   },
@@ -71,13 +116,27 @@ const classesSlice = createSlice({
         state.status = 'failed';
         state.error = action.error.message;
       })
-      .addCase(addNewPost.fulfilled, (state, action) => {
+      .addCase(addNewClass.fulfilled, (state, action) => {
+        console.log(action);
         state.classes.push(action.payload);
+      })
+      .addCase(classUpdate.fulfilled, (state, action) => {
+        // state.classes.push(action.payload);
+        // const { id, name, content, startDate, endDate, maxStudents } =
+        //   action.payload.content;
+        // const existingPost = state.classes.find((post) => post.id == id);
+        // if (existingPost) {
+        //   existingPost.name = name;
+        //   existingPost.content = content;
+        //   existingPost.startDate = startDate;
+        //   existingPost.endDate = endDate;
+        //   existingPost.maxStudents = maxStudents;
+        // }
       });
   },
 });
 
-export const { postAdded, postUpdated, reactionAdded } = classesSlice.actions;
+export const { postAdded, classUpdated, reactionAdded } = classesSlice.actions;
 
 export default classesSlice.reducer;
 

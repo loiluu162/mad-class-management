@@ -10,6 +10,7 @@ const emailConfig = {
   user: process.env.EMAIL_USERNAME,
   pass: process.env.EMAIL_PASSWORD,
   host: process.env.EMAIL_HOST_PROVIDER,
+  port: process.env.EMAIL_HOST_PORT
 };
 const tokenConfig = {
   accessTokenSecret: process.env.ACCESS_TOKEN_SECRET,

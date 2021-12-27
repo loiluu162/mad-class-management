@@ -9,11 +9,13 @@ const {
 const {
   sendAcceptationEmail,
   sendRejectionEmail,
+  sendRegistrationEmail,
 } = require('../../utils/email');
 
 const AppError = require('../../utils/appError');
 const { RegistrationRepo } = require('./repo');
 const { Op } = require('sequelize');
+const { UserRepo } = require('../users/repo');
 
 const getAllRegistrations = async () => {
   return await RegistrationRepo.findAll();
@@ -36,13 +38,19 @@ const createNewRegistration = async (req) => {
         StatusCodes.BAD_REQUEST
       );
     }
-    return await RegistrationRepo.update(
+    await RegistrationRepo.update(
       { status: REGISTRATION_PENDING },
       { userId, classId }
     );
+  } else {
+    await RegistrationRepo.create({ userId, classId });
   }
 
-  await RegistrationRepo.create({ userId, classId });
+  // send email
+
+  const { email } = await UserRepo.findById(userId);
+
+  sendRegistrationEmail(email);
 };
 
 const cancelRegistration = async (req) => {
@@ -81,14 +89,16 @@ const changeStatusRegistration = async (req) => {
       StatusCodes.BAD_REQUEST
     );
   }
+
+  const { email } = await UserRepo.findById(userId);
+
   if (status === REGISTRATION_ACCEPTED) {
     // await EmailUtils.send
-    // await sendAcceptationEmail(to);
+    sendAcceptationEmail(email, 'ACCEPT NE');
   }
   if (status === REGISTRATION_REJECTED) {
     // await EmailUtils.send
-    // await sendRejectionEmail(to);
-
+    sendRejectionEmail(email, 'REJECT NE');
   }
   return success;
 };

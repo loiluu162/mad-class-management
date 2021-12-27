@@ -22,25 +22,36 @@ const verifyToken = async (req, res, next) => {
 
     jwt.verify(token, accessTokenSecret, (err, decoded) => {
       if (err) {
-        next(
+        return next(
           new AppError(
             'Unauthorized! Access Token was not existed or expired!',
             StatusCodes.UNAUTHORIZED
           )
         );
       }
-      UserRepo.findOne({ id: decoded.id, enabled: true, blocked: false }).then(
-        (user) => {
-          if (!user) {
-            next(
-              new AppError(
-                'The user belonging to this token does no longer exist.',
-                StatusCodes.FORBIDDEN
-              )
-            );
-          }
+      UserRepo.findOne({ id: decoded.id }).then((user) => {
+        if (!user) {
+          return next(
+            new AppError(
+              'The user belonging to this token does no longer exist.',
+              StatusCodes.FORBIDDEN
+            )
+          );
         }
-      );
+        if (user.blocked) {
+          return next(
+            new AppError('The user has been blocked', StatusCodes.FORBIDDEN)
+          );
+        }
+        if (!user.enabled) {
+          return next(
+            new AppError(
+              'The user has not been verified',
+              StatusCodes.FORBIDDEN
+            )
+          );
+        }
+      });
       req.userId = decoded.id;
       next();
     });

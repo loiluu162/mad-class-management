@@ -1,12 +1,13 @@
 import React from 'react';
+import AddClassForm from '../../features/classes/addClassForm';
 import ClassList from '../../features/classes/classList';
 
 const ClassManage = () => {
   return (
-    <div>
-      Hello Admin, Class Manage here
+    <>
+      <AddClassForm />
       <ClassList />
-    </div>
+    </>
   );
 };
 
