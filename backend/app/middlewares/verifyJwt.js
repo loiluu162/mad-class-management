@@ -20,7 +20,7 @@ const verifyToken = async (req, res, next) => {
       );
     }
 
-    jwt.verify(token, accessTokenSecret, (err, decoded) => {
+    jwt.verify(token, accessTokenSecret, async (err, decoded) => {
       if (err) {
         return next(
           new AppError(
@@ -29,29 +29,25 @@ const verifyToken = async (req, res, next) => {
           )
         );
       }
-      UserRepo.findOne({ id: decoded.id }).then((user) => {
-        if (!user) {
-          return next(
-            new AppError(
-              'The user belonging to this token does no longer exist.',
-              StatusCodes.FORBIDDEN
-            )
-          );
-        }
-        if (user.blocked) {
-          return next(
-            new AppError('The user has been blocked', StatusCodes.FORBIDDEN)
-          );
-        }
-        if (!user.enabled) {
-          return next(
-            new AppError(
-              'The user has not been verified',
-              StatusCodes.FORBIDDEN
-            )
-          );
-        }
-      });
+      const user = await UserRepo.findOne({ id: decoded.id });
+      if (!user) {
+        return next(
+          new AppError(
+            'The user belonging to this token does no longer exist.',
+            StatusCodes.FORBIDDEN
+          )
+        );
+      }
+      if (user.blocked) {
+        return next(
+          new AppError('The user has been blocked', StatusCodes.FORBIDDEN)
+        );
+      }
+      if (!user.enabled) {
+        return next(
+          new AppError('The user has not been verified', StatusCodes.FORBIDDEN)
+        );
+      }
       req.userId = decoded.id;
       next();
     });

@@ -6,14 +6,8 @@ const { REGISTRATION_ACCEPTED } = require('../../constants');
 const getAllClasses = async () => {
   return await ClassRepo.findAll({}, [
     {
-      model: User,
-      as: 'students',
-      through: {
-        where: {
-          status: REGISTRATION_ACCEPTED,
-        },
-        attributes: [],
-      },
+      
+      
     },
     { model: StudyTime, as: 'studyTimes' },
   ]);
