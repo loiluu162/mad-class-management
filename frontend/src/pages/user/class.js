@@ -1,11 +1,12 @@
-import React from 'react'
+import React from 'react';
+import UserClassesList from '../../features/classes/userClassList';
 
 const UserClass = () => {
-    return (
-        <div>
-            User Class
-        </div>
-    )
-}
+  return (
+    <div>
+      <UserClassesList />
+    </div>
+  );
+};
 
-export default UserClass
+export default UserClass;

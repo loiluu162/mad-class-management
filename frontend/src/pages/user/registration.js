@@ -1,11 +1,12 @@
-import React from 'react'
+import React from 'react';
+import RegistrationListForUser from '../../features/registrations/registrationsListForUser';
 
 const UserRegistration = () => {
-    return (
-        <div>
-            User registration
-        </div>
-    )
-}
+  return (
+    <div>
+      <RegistrationListForUser />
+    </div>
+  );
+};
 
-export default UserRegistration
+export default UserRegistration;

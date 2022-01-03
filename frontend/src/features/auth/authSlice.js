@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { client } from '../../services/api';
+import axios from 'axios';
+import { client, instance } from '../../services/api';
 
 import { setMessage } from '../message/messageSlice';
 
@@ -93,6 +94,37 @@ export const resetPassword = createAsyncThunk(
     }
   }
 );
+export const changeUserInfo = createAsyncThunk(
+  'auth/changeUserInfo',
+  async (userInfo, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const { accessToken = null } = getState().auth.user;
+
+      const response = await client.post('/users/changeInfo', userInfo, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return response;
+    } catch (error) {
+      dispatch(setMessage(error.error));
+      return rejectWithValue();
+    }
+  }
+);
+export const changeAvatar = createAsyncThunk(
+  'auth/changeAvatar',
+  async ({ formData }, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const { accessToken = null } = getState().auth.user;
+      const response = await instance.post('/users/changeAvatar', formData, {
+        'Content-Type': 'multipart/form-data',
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      return response.data;
+    } catch (error) {
+      return rejectWithValue();
+    }
+  }
+);
 export const changePassword = createAsyncThunk(
   'auth/changePassword',
   async (
@@ -143,6 +175,13 @@ const authSlice = createSlice({
       .addCase(resetPassword.fulfilled, (state, action) => {
         state.loggedIn = true;
         state.user = action.payload.content;
+      })
+      .addCase(changeAvatar.fulfilled, (state, action) => {
+        state.user = { ...state.user, photoUrl: action.payload.content };
+      })
+      .addCase(changeUserInfo.fulfilled, (state, action) => {
+        console.log(action);
+        state.user = { ...state.user, ...action.payload.content };
       })
       .addCase(login.rejected, (state, action) => {
         state.loggedIn = false;

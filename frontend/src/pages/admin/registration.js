@@ -1,7 +1,12 @@
 import React from 'react';
+import RegistrationListForAdmin from '../../features/registrations/registrationListForAdmin';
 
 const RegistrationManage = () => {
-  return <div>User registration manage</div>;
+  return (
+    <div>
+      <RegistrationListForAdmin />
+    </div>
+  );
 };
 
 export default RegistrationManage;

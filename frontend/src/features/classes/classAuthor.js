@@ -6,5 +6,5 @@ export const ClassAuthor = ({ userId }) => {
   //   state.users.find((user) => user.id === userId)
   // );
 
-  return <span>by {userId}</span>;
+  return <span>by ADMIN @{userId}</span>;
 };

@@ -181,6 +181,7 @@ const generateUserCredential = async (userId) => {
     accessToken,
     refreshToken,
     name: user.name,
+    photoUrl: user.photoUrl,
   };
 };
 

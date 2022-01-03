@@ -20,6 +20,8 @@ import UserRegistration from './pages/user/registration';
 import RegistrationManage from './pages/admin/registration';
 import EditClass from './features/classes/editClass';
 import SingleClassPage from './features/classes/singleClass';
+import ChangeUserInfo from './components/changeUserInfo';
+import ChangeAvt from './components/changeAvatar';
 
 function App() {
   return (
@@ -81,11 +83,21 @@ function App() {
                 component={EditClass}
               />
               {/* user route */}
-              <ProtectedRoute path='/class' exact component={UserClass} />
+              <ProtectedRoute path='/classes' exact component={UserClass} />
               <ProtectedRoute
                 path='/registration'
                 exact
                 component={UserRegistration}
+              />
+              <ProtectedRoute
+                path='/changeAvatar'
+                exact
+                component={ChangeAvt}
+              />
+              <ProtectedRoute
+                path='/changeInfo' 
+                exact
+                component={ChangeUserInfo}
               />
             </Switch>
           </div>

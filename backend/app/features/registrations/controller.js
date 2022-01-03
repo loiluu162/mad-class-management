@@ -30,10 +30,19 @@ const changeStatusRegistration = catchAsync(async (req, res, next) => {
   await RegistrationService.changeStatusRegistration(req);
   return messageResponse(res, 'successfully changed status for registration');
 });
+const getMyRegistrations = catchAsync(async (req, res, next) => {
+  const registrations = await RegistrationService.getMyRegistrations(req);
+  return messageResponse(
+    res,
+    'successfully retrieved registrations',
+    registrations
+  );
+});
 
 module.exports = {
   getAllRegistrations,
   createNewRegistration,
   cancelRegistration,
   changeStatusRegistration,
+  getMyRegistrations,
 };

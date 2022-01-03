@@ -60,17 +60,6 @@ User.hasOne(Token, {
   foreignKey: 'userId',
   targetKey: 'id',
 });
-User.hasOne(Registration, {
-  as: 'registrations',
-  foreignKey: 'userId',
-  targetKey: 'id',
-});
-
-Class.hasOne(Registration, {
-  as: 'registrations',
-  foreignKey: 'classIdId',
-  targetKey: 'id',
-});
 
 Class.hasMany(StudyTime, { as: 'studyTimes' });
 StudyTime.belongsTo(Class, { as: 'class' });

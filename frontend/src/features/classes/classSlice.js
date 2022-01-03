@@ -9,8 +9,6 @@ const initialState = {
 export const fetchClasses = createAsyncThunk(
   'classes/fetchClasses',
   async (_, { dispatch, rejectWithValue, getState }) => {
-    // const response = await client.get('/fakeApi/classes');
-    // return response.data;
     try {
       const { accessToken = null } = getState().auth.user;
       const response = await client.get(
@@ -20,6 +18,58 @@ export const fetchClasses = createAsyncThunk(
           headers: { Authorization: `Bearer ${accessToken}` },
         }
       );
+      // dispatch(setMessage(response.message));
+      return response;
+    } catch (error) {
+      // dispatch(setMessage(error.error));
+      return rejectWithValue();
+    }
+  }
+);
+export const fetchClassesWithMyStatus = createAsyncThunk(
+  'classes/fetchClassesWithMyStatus',
+  async (_, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const { accessToken = null } = getState().auth.user;
+      const response = await client.get(
+        '/classes/my',
+
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      // dispatch(setMessage(response.message));
+      return response;
+    } catch (error) {
+      // dispatch(setMessage(error.error));
+      return rejectWithValue();
+    }
+  }
+);
+export const refetchClass = createAsyncThunk(
+  'classes/refetchClass',
+  async ({ id }, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const { accessToken = null } = getState().auth.user;
+      const response = await client.get(`/classes/${id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+      // dispatch(setMessage(response.message));
+      return response;
+    } catch (error) {
+      // dispatch(setMessage(error.error));
+      return rejectWithValue();
+    }
+  }
+);
+export const refetchClassWithStatus = createAsyncThunk(
+  'classes/refetchClassWithStatus',
+  async ({ id }, { dispatch, rejectWithValue, getState }) => {
+    try {
+      const { accessToken = null } = getState().auth.user;
+      const response = await client.get(`/classes/my/${id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
       // dispatch(setMessage(response.message));
       return response;
     } catch (error) {
@@ -53,15 +103,51 @@ export const addNewClass = createAsyncThunk(
     return response;
   }
 );
+export const registerClass = createAsyncThunk(
+  'classes/registerClass',
+  async ({ classId }, { dispatch, rejectWithValue, getState }) => {
+    const { accessToken = null } = getState().auth.user;
+
+    const response = await client.post(
+      '/registrations',
+      {
+        classId,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    dispatch(refetchClassWithStatus({ id: classId }));
+    return response;
+  }
+);
+export const cancelRegistration = createAsyncThunk(
+  'classes/cancelRegistration',
+  async ({ classId }, { dispatch, rejectWithValue, getState }) => {
+    const { accessToken = null } = getState().auth.user;
+
+    const response = await client.post(
+      '/registrations/cancel',
+      {
+        classId,
+      },
+      {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }
+    );
+    dispatch(refetchClassWithStatus({ id: classId }));
+    return response;
+  }
+);
 export const classUpdate = createAsyncThunk(
   'classes/updateClass',
   async (
-    { id, name, startDate, endDate, maxStudents },
+    { id, name, startDate, endDate, maxStudents, studyTimes },
     { dispatch, rejectWithValue, getState }
   ) => {
     const { accessToken = null } = getState().auth.user;
 
-    const response = await client.post(
+    const response = await client.put(
       `/classes/${id}`,
       {
         id,
@@ -69,14 +155,36 @@ export const classUpdate = createAsyncThunk(
         startDate,
         endDate,
         maxStudents,
+        studyTimes,
       },
       {
-        method: 'PUT',
         headers: { Authorization: `Bearer ${accessToken}` },
       }
     );
-    dispatch(classUpdated({ id, name, startDate, endDate, maxStudents }));
-    return response.data;
+    dispatch(refetchClass({ id }));
+    return response;
+  }
+);
+export const deleteStudyTime = createAsyncThunk(
+  'classes/deleteStudyTime',
+  async ({ id, classId }, { dispatch, rejectWithValue, getState }) => {
+    const { accessToken = null } = getState().auth.user;
+    const response = await client.delete(`/classes/deleteStudyTime/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    dispatch(refetchClass({ id: classId }));
+    return response;
+  }
+);
+export const deleteClass = createAsyncThunk(
+  'classes/deleteClass',
+  async ({ id }, { dispatch, rejectWithValue, getState }) => {
+    const { accessToken = null } = getState().auth.user;
+    const response = await client.delete(`/classes/${id}`, {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    dispatch(fetchClasses());
+    return response;
   }
 );
 
@@ -84,22 +192,20 @@ const classesSlice = createSlice({
   name: 'classes',
   initialState,
   reducers: {
-    reactionAdded(state, action) {
-      const { postId, reaction } = action.payload;
-      const existingPost = state.classes.find((post) => post.id === postId);
-      if (existingPost) {
-        existingPost.reactions[reaction]++;
-      }
-    },
     classUpdated(state, action) {
       const { id, name, startDate, endDate, maxStudents } = action.payload;
-      const existingPost = state.classes.find((post) => post.id == id);
-      if (existingPost) {
-        existingPost.name = name;
-        existingPost.startDate = startDate;
-        existingPost.endDate = endDate;
-        existingPost.maxStudents = maxStudents;
-      }
+      const foundIndex = state.classes.findIndex(
+        (item) => item.id === Number.parseInt(id)
+      );
+      if (foundIndex === -1) return;
+
+      state.classes[foundIndex] = {
+        ...state.classes[foundIndex],
+        name,
+        startDate,
+        endDate,
+        maxStudents,
+      };
     },
   },
   extraReducers(builder) {
@@ -109,34 +215,49 @@ const classesSlice = createSlice({
       })
       .addCase(fetchClasses.fulfilled, (state, action) => {
         state.status = 'succeeded';
-        // Add any fetched classes to the array
         state.classes = action.payload.content;
       })
       .addCase(fetchClasses.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.error.message;
       })
-      .addCase(addNewClass.fulfilled, (state, action) => {
-        console.log(action);
-        state.classes.push(action.payload);
+      .addCase(fetchClassesWithMyStatus.pending, (state, action) => {
+        state.status = 'loading';
       })
-      .addCase(classUpdate.fulfilled, (state, action) => {
-        // state.classes.push(action.payload);
-        // const { id, name, content, startDate, endDate, maxStudents } =
-        //   action.payload.content;
-        // const existingPost = state.classes.find((post) => post.id == id);
-        // if (existingPost) {
-        //   existingPost.name = name;
-        //   existingPost.content = content;
-        //   existingPost.startDate = startDate;
-        //   existingPost.endDate = endDate;
-        //   existingPost.maxStudents = maxStudents;
-        // }
+      .addCase(fetchClassesWithMyStatus.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.classes = action.payload.content;
+      })
+      .addCase(fetchClassesWithMyStatus.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.error.message;
+      })
+      .addCase(refetchClass.fulfilled, (state, action) => {
+        const foundIndex = state.classes.findIndex(
+          (item) => item.id === Number.parseInt(action.payload.content.id)
+        );
+        state.classes[foundIndex] = {
+          ...state.classes[foundIndex],
+          ...action.payload.content,
+        };
+      })
+      .addCase(refetchClassWithStatus.fulfilled, (state, action) => {
+        const foundIndex = state.classes.findIndex(
+          (item) => item.id === Number.parseInt(action.payload.content.id)
+        );
+        state.classes[foundIndex] = {
+          ...state.classes[foundIndex],
+          ...action.payload.content,
+        };
+      })
+      .addCase(deleteStudyTime.fulfilled, (state, action) => {})
+      .addCase(addNewClass.fulfilled, (state, action) => {
+        state.classes.unshift(action.payload.content);
       });
   },
 });
 
-export const { postAdded, classUpdated, reactionAdded } = classesSlice.actions;
+export const { postAdded, classUpdated } = classesSlice.actions;
 
 export default classesSlice.reducer;
 

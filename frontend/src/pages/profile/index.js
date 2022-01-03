@@ -1,15 +1,42 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
-import { selectCurrentUser } from '../../features/auth/authSlice';
+import { Link } from 'react-router-dom';
+import ChangeUserInfo from '../../components/changeUserInfo';
+import ChangeAvt from '../../components/changeAvatar';
+import {
+  changePassword,
+  selectCurrentUser,
+} from '../../features/auth/authSlice';
 
 function Profile() {
   const user = useSelector(selectCurrentUser);
+
   return (
-    <div>
-      <p>{user.id}</p>
-      <p>{user.name}</p>
-      <p>{user.email}</p>
-    </div>
+    <>
+      <div className='nav-buttons-group'>
+        <Link to='/changePassword' className='button'>
+          change password
+        </Link>
+        <Link to='/changeAvatar' className='button'>
+          change avatar
+        </Link>
+        <Link to='/changeInfo' className='button'>
+          change info
+        </Link>
+      </div>
+      <div className='profile-card'>
+        <img src={user.photoUrl} alt={user.name} />
+        <div className='profile-card__info'>
+          <h1>{user.name}</h1>
+          <span>{user.email}</span>
+          <p>
+            {user.roles.map((role) => (
+              <p>{role}</p>
+            ))}
+          </p>
+        </div>
+      </div>
+    </>
   );
 }
 

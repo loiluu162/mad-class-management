@@ -2,7 +2,7 @@ const express = require('express');
 const { verifyToken } = require('../../middlewares/verifyJwt');
 const router = express.Router();
 
-const { getUser, updateUser, changeAvatar } = require('./controller');
+const { getUser, updateUser, changeAvatar, changeInfo } = require('./controller');
 
 // router.get('/', getUsers);
 const multer = require('multer');
@@ -20,6 +20,7 @@ router.use(verifyToken);
 router.route('/').get(getUser).put(updateUser);
 
 router.post('/changeAvatar', fileUpload.single('avatar'), changeAvatar);
+router.post('/changeInfo', changeInfo);
 
 // router.get('/email/:email', getUsers);
 

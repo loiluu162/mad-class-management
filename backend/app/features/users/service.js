@@ -24,16 +24,18 @@ const changeAvatar = async function (req) {
   const { id } = req;
   return await UserRepo.findById(id);
 };
-const updateUser = async function (req) {
-  const { id } = req;
-  return await UserRepo.findById(id);
+const changeInfo = async function (req) {
+  const { userId } = req;
+  const data = req.body;
+  await UserRepo.update(data, { id: userId }, { returning: true, plain: true });
+  return await UserRepo.findById(userId);
 };
 
 module.exports = {
   getUsers,
   getUser,
   changeAvatar,
-  updateUser,
+  changeInfo,
   handleSaveAvatar,
 };
 
@@ -58,8 +60,8 @@ function handleSaveAvatar(req) {
     const result = await streamUpload(req);
     const newAvatar = result.secure_url;
     await UserRepo.update({ photoUrl: newAvatar }, { id: userId });
-    return result;
+    return newAvatar;
   }
 
-  upload(req);
+  return upload(req);
 }

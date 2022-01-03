@@ -14,14 +14,30 @@ const {
 
 const AppError = require('../../utils/appError');
 const { RegistrationRepo } = require('./repo');
-const { Op } = require('sequelize');
+const { Op, QueryTypes } = require('sequelize');
 const { UserRepo } = require('../users/repo');
 const { ClassRepo } = require('../classes/repo');
-const { User } = require('../../db');
+const { User, sequelize } = require('../../db');
 
 const getAllRegistrations = async () => {
-  const registrations = await RegistrationRepo.findAll({}, [{ model: User }]);
-
+  // const registrations = await RegistrationRepo.findAll({}, [{ model: User }]);
+  const query =
+    'SELECT r.*, c.name as "className", u.name as "userFullName", u.email FROM registrations r inner join users u on r."userId" = u.id inner join classes c on r."classId" = c.id order by r."classId", r."userId"';
+  const registrations = await sequelize.query(query, {
+    bind: { status: 'active' },
+    type: QueryTypes.SELECT,
+  });
+  return registrations;
+};
+const getMyRegistrations = async (req) => {
+  // const registrations = await RegistrationRepo.findAll({}, [{ model: User }]);
+  const { userId } = req;
+  const query =
+    'SELECT r.*, c.name as "className", u.name as "userFullName", u.email FROM registrations r inner join users u on r."userId" = u.id inner join classes c on r."classId" = c.id where r."userId" = $userId order by r."classId", r."userId"';
+  const registrations = await sequelize.query(query, {
+    bind: { userId: userId },
+    type: QueryTypes.SELECT,
+  });
   return registrations;
 };
 
@@ -58,7 +74,7 @@ const createNewRegistration = async (req) => {
 };
 
 const cancelRegistration = async (req) => {
-  const { classId } = req.params;
+  const { classId } = req.body;
   const success = (
     await RegistrationRepo.update(
       { status: REGISTRATION_CANCELED },
@@ -97,11 +113,10 @@ const changeStatusRegistration = async (req) => {
   const { email } = await UserRepo.findById(userId);
 
   if (status === REGISTRATION_ACCEPTED) {
-    // await EmailUtils.send
     sendAcceptationEmail(email, 'ACCEPT NE');
   }
+
   if (status === REGISTRATION_REJECTED) {
-    // await EmailUtils.send
     sendRejectionEmail(email, 'REJECT NE');
   }
   return success;
@@ -112,4 +127,5 @@ module.exports = {
   createNewRegistration,
   cancelRegistration,
   changeStatusRegistration,
+  getMyRegistrations,
 };

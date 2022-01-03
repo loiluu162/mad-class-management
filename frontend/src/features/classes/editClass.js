@@ -6,6 +6,8 @@ import { TimeAgo } from './timeAgo';
 import { ClassAuthor } from './classAuthor';
 import { useHistory } from 'react-router-dom';
 import DatePicker from 'react-date-picker';
+import { StudyTimeGroup } from './studyTimeGroup';
+import { confirm } from '../../utils';
 
 const EditClass = ({ match }) => {
   const { classId } = match.params;
@@ -18,6 +20,9 @@ const EditClass = ({ match }) => {
   const [endDate, setEndDate] = useState(new Date(classItem.endDate));
   const [maxStudents, setMaxStudents] = useState(classItem.maxStudents);
   const [name, setName] = useState(classItem.name);
+  const [studyTimes, setStudyTimes] = useState(
+    classItem.studyTimes.map(({ ...attrs }) => ({ existed: true, ...attrs }))
+  );
 
   const dispatch = useDispatch();
 
@@ -30,17 +35,42 @@ const EditClass = ({ match }) => {
 
   const onSavePostClicked = (e) => {
     e.preventDefault();
+    // console.log(studyTimes);
+    const editStudyTimes = studyTimes.map(({ id, existed, ...attrs }) => {
+      if (existed) {
+        return { id, ...attrs };
+      }
+      return { ...attrs };
+    });
     if (name && startDate && endDate && maxStudents) {
-      dispatch(
-        classUpdate({
-          id: classId,
-          name,
-          startDate,
-          endDate,
-          maxStudents,
-        })
-      );
-      history.push(`/admin/classes/${classId}`);
+      confirm({
+        handleYes: () => {
+          dispatch(
+            classUpdate({
+              id: classId,
+              name,
+              startDate,
+              endDate,
+              maxStudents,
+              studyTimes: editStudyTimes,
+            })
+          )
+            .unwrap()
+            .then(() => {
+              dispatch(
+                classUpdate({
+                  id: classId,
+                  name,
+                  startDate,
+                  endDate,
+                  maxStudents,
+                  studyTimes: editStudyTimes,
+                })
+              );
+              history.push(`/admin/classes/${classId}`);
+            });
+        },
+      });
     }
   };
   if (!classItem) {
@@ -92,27 +122,8 @@ const EditClass = ({ match }) => {
             onChange={onEndDateChange}
             value={endDate}
           />
-
-          {/* <input
-            type='number'
-            id='postContent'
-            name='postContent'
-            value={content}
-            onChange={onContentChanged}
-            className='form-control'
-          /> */}
         </div>
-        {/* <div className='form-group'>
-          <label htmlFor='postContent'>Study Time</label>
-          <input
-            type='number'
-            id='postContent'
-            name='postContent'
-            value={content}
-            className='form-control'
-            onChange={onContentChanged}
-          />
-        </div> */}
+        <StudyTimeGroup studyTimes={studyTimes} setStudyTimes={setStudyTimes} />
         <button type='submit'>Save Class</button>
       </form>
     </section>

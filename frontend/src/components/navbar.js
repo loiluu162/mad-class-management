@@ -56,6 +56,16 @@ function Navbar() {
                     Registration
                   </Link>
                 </li>
+                <li className='nav-item'>
+                  <Link className='nav-link' to={'/classes'}>
+                    UClass
+                  </Link>
+                </li>
+                <li className='nav-item'>
+                  <Link className='nav-link' to={'/registration'}>
+                    URegistration
+                  </Link>
+                </li>
               </>
             )}
           </ul>

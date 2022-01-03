@@ -19,10 +19,15 @@ const changeAvatar = catchAsync(async (req, res, next) => {
   const data = await UserService.handleSaveAvatar(req);
   return messageResponse(res, 'Successfully change your avatar', data);
 });
+const changeInfo = catchAsync(async (req, res, next) => {
+  const data = await UserService.changeInfo(req);
+  return messageResponse(res, 'Successfully change your info', data);
+});
 
 module.exports = {
   getUsers,
   getUser,
   updateUser,
   changeAvatar,
+  changeInfo
 };

@@ -18,18 +18,71 @@ export default function SingleClassPage({ match }) {
       </section>
     );
   }
+  const {
+    id,
+    name,
+    createdBy,
+    createdAt,
+    studyTimes,
+    students,
+    startDate,
+    endDate,
+    maxStudents,
+  } = classItem;
 
+  console.log(students);
   return (
     <section>
       <article className='class'>
-        <h2>{classItem.name}</h2>
+        <h2>{name}</h2>
         <div>
-          <ClassAuthor userId={classItem.createdBy} />
-          <TimeAgo timestamp={classItem.createdAt} />
+          <ClassAuthor userId={createdBy} />
+          <TimeAgo timestamp={createdAt} />
         </div>
-        <p className='post-content'>{classItem.name}</p>
-        {/* <ReactionButtons post={classItem} /> */}
-        <Link to={`/admin/editClass/${classItem.id}`} className='button'>
+        <div>
+          <p>
+            From <b>{new Date(startDate).toDateString()}</b> to
+            <b> {new Date(endDate).toDateString()}</b>
+          </p>
+          <p>
+            Current{' '}
+            <b>
+              {students.length}/{maxStudents}
+            </b>{' '}
+            accepted
+          </p>
+
+          {studyTimes && studyTimes.length > 0 ? (
+            <>
+              <p>Study at</p>
+              {studyTimes.map(
+                ({ id, dayInWeek, startTime, endTime, classId }) => (
+                  <li key={id}>
+                    {dayInWeek} {startTime.substr(0, 5)} -{' '}
+                    {endTime.substr(0, 5)}
+                  </li>
+                )
+              )}
+            </>
+          ) : (
+            <p>Not have any study time yet </p>
+          )}
+        </div>
+        <div className='registration-list'>
+          {students && students.length ? (
+            <>
+              <h3>List registration</h3>
+              {students.map(({ email, name, id, photoUrl, registrations }) => (
+                <li key={id}>
+                  {name} | {email} {registrations.status}
+                </li>
+              ))}
+            </>
+          ) : (
+            <p>Not have any student yet</p>
+          )}
+        </div>
+        <Link to={`/admin/editClass/${id}`} className='button'>
           Edit Class
         </Link>
       </article>

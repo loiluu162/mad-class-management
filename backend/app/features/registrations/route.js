@@ -8,14 +8,16 @@ const {
   createNewRegistration,
   cancelRegistration,
   changeStatusRegistration,
+  getMyRegistrations,
 } = require('./controller');
 
 router.use(verifyToken);
 router.post('/', createNewRegistration);
-router.post('/cancel/:classId', cancelRegistration);
+router.post('/cancel', cancelRegistration);
 
 router.use(hasAnyRole(ROLE_ADMIN));
 router.route('/').get(getAllRegistrations);
+router.route('/my').get(getMyRegistrations);
 router.put('/changeStatus', changeStatusRegistration);
 
 module.exports = router;

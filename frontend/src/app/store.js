@@ -10,10 +10,12 @@ import { persistStore } from 'redux-persist';
 import authReducer from '../features/auth/authSlice';
 import messageReducer from '../features/message/messageSlice';
 import classReducer from '../features/classes/classSlice';
+import registrationReducer from '../features/registrations/registrationSlice';
 const reducers = combineReducers({
   auth: authReducer,
   message: messageReducer,
   classes: classReducer,
+  registrations: registrationReducer,
 });
 
 const persistConfig = {
