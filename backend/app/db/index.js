@@ -3,7 +3,12 @@ const { databaseConnectionString } = require('../config');
 const { Sequelize } = require('sequelize');
 const { REGISTRATION_PENDING, ROLE_USER, ROLE_ADMIN } = require('../constants');
 
-const sequelize = new Sequelize(databaseConnectionString);
+const sequelize = new Sequelize(databaseConnectionString, {
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: true,
+  },
+});
 
 const User = require('../features/users/user')(sequelize, Sequelize);
 const Role = require('../features/users/role')(sequelize, Sequelize);
