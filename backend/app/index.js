@@ -26,6 +26,8 @@ app.use(
   })
 );
 app.use(cors());
+app.options('*', cors());
+
 app.use(helmet());
 // Limit requests from same API
 const limiter = rateLimit({
