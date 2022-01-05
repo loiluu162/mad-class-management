@@ -3,16 +3,19 @@ const { databaseConnectionString } = require('../config');
 const { Sequelize } = require('sequelize');
 const { REGISTRATION_PENDING, ROLE_USER, ROLE_ADMIN } = require('../constants');
 
-const sequelize = new Sequelize(databaseConnectionString, {
-  dialect: 'postgres',
-  ssl: true,
-  protocol: 'postgres',
-  dialectOptions: {
-    require: true,
-    rejectUnauthorized: false,
-  },
-});
-
+const sequelize =
+  process.env.NODE_ENV === 'dev'
+    ? new Sequelize(databaseConnectionString)
+    : new Sequelize(databaseConnectionString, {
+      dialect: 'postgres',
+      protocol: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
+    });
 const User = require('../features/users/user')(sequelize, Sequelize);
 const Role = require('../features/users/role')(sequelize, Sequelize);
 const Token = require('../features/users/token')(sequelize, Sequelize);
@@ -79,15 +82,15 @@ StudyTime.belongsTo(Class, { as: 'class' });
     await Role.sync();
     await UserRole.sync();
     await Token.sync();
+    await Class.sync();
+    await Registration.sync();
+    await StudyTime.sync();
     await Role.findOrCreate({
       where: { name: ROLE_USER },
     });
     await Role.findOrCreate({
       where: { name: ROLE_ADMIN },
     });
-    await Class.sync();
-    await Registration.sync();
-    await StudyTime.sync();
     console.log('Connection has been established successfully.');
   } catch (error) {
     console.error('Unable to connect to the database:', error);
@@ -103,21 +106,3 @@ module.exports = {
   StudyTime,
   Registration,
 };
-
-// const sequelize = new Sequelize(
-//   config.DB,
-//   config.USER,
-//   config.PASSWORD,
-//   {
-//     host: config.HOST,
-//     dialect: config.dialect,
-//     operatorsAliases: false,
-
-//     pool: {
-//       max: config.pool.max,
-//       min: config.pool.min,
-//       acquire: config.pool.acquire,
-//       idle: config.pool.idle
-//     }
-//   }
-// );
