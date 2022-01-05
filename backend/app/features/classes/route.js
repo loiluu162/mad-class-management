@@ -2,6 +2,7 @@ const express = require('express');
 const { ROLE_ADMIN } = require('../../constants');
 const { hasAnyRole, verifyToken } = require('../../middlewares/verifyJwt');
 const router = express.Router({ mergeParams: true });
+
 const {
   getAllClasses,
   createNewClass,

@@ -7,13 +7,17 @@ const getUsers = catchAsync(async (req, res, next) => {
   return messageResponse(res, 'Successfully users retrieved', users);
 });
 const getUser = catchAsync(async (req, res, next) => {
-  const user = await UserService.getUserById(req);
+  const user = await UserService.getUser(req);
   return messageResponse(res, 'Successfully user info retrieved', user);
 });
+const createNewUser = catchAsync(async (req, res, next) => {
+  const user = await UserService.createNewUser(req);
+  return messageResponse(res, 'Successfully user created', user);
+});
 
-const updateUser = catchAsync(async (req, res, next) => {
-  const user = await UserService.updateUser(req);
-  return messageResponse(res, 'Successfully updated user info', user);
+const blockUser = catchAsync(async (req, res, next) => {
+  const user = await UserService.blockUser(req);
+  return messageResponse(res, 'Successfully', user);
 });
 const changeAvatar = catchAsync(async (req, res, next) => {
   const data = await UserService.handleSaveAvatar(req);
@@ -27,7 +31,8 @@ const changeInfo = catchAsync(async (req, res, next) => {
 module.exports = {
   getUsers,
   getUser,
-  updateUser,
   changeAvatar,
-  changeInfo
+  changeInfo,
+  createNewUser,
+  blockUser,
 };

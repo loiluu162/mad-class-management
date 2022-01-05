@@ -9,7 +9,7 @@ import { Spinner } from '../../components/spinner';
 const UpdateStatusModal = ({
   isOpen,
   closeModal,
-  label = 'TEST',
+  label = 'change status',
   registration,
 }) => {
   const [loading, setLoading] = useState(false);
@@ -31,8 +31,7 @@ const UpdateStatusModal = ({
         closeModal();
       })
       .catch((err) => {
-        console.log(err);
-        toast.error('error');
+        toast.error('Error');
         setLoading(false);
       });
   };

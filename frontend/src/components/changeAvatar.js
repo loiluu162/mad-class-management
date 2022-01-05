@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
+import toast from 'react-hot-toast';
 import { useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { changeAvatar } from '../features/auth/authSlice';
+import { Spinner } from './spinner';
 
 const ChangeAvt = () => {
   const [state, setState] = useState({ imagePreview: null, imageFile: null });
+  const [loading, setLoading] = useState(false);
+  const history = useHistory();
   const dispatch = useDispatch();
   const handleImagePreview = (e) => {
     const image_as_base64 = URL.createObjectURL(e.target.files[0]);
@@ -20,11 +25,19 @@ const ChangeAvt = () => {
     if (state.imageFile !== null) {
       let formData = new FormData();
       formData.append('avatar', state.imageFile);
-      dispatch(changeAvatar({ formData }));
+      setLoading(true);
+      dispatch(changeAvatar({ formData }))
+        .unwrap()
+        .then(() => history.push('/profile'))
+        .catch(() => {
+          toast.error('Error');
+          setLoading(false);
+        });
     }
   };
   return (
     <form onSubmit={handleSubmitFile}>
+      {loading && <Spinner />}
       <div className='form-group'>
         {state.imagePreview && <img src={state.imagePreview} alt='preview' />}
         <input type='file' onChange={handleImagePreview} />

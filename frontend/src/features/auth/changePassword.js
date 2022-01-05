@@ -4,6 +4,8 @@ import ErrorMessage from '../message/errorMessage';
 import Loading from '../../components/loading';
 import { clearMessage, selectMessage } from '../message/messageSlice';
 import { changePassword } from './authSlice';
+import { confirm } from '../../utils';
+import { useHistory } from 'react-router-dom';
 
 const ChangePassword = () => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -12,6 +14,8 @@ const ChangePassword = () => {
 
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const history = useHistory();
 
   const dispatch = useDispatch();
   useEffect(() => {
@@ -22,16 +26,19 @@ const ChangePassword = () => {
 
   const handleChangePassword = (e) => {
     e.preventDefault();
-    setLoading(true);
-    dispatch(
-      changePassword({ currentPassword, newPassword, confirmNewPassword })
-    )
-      .unwrap()
-      .then((_) => {
-        setSuccess(true);
-        setLoading(false);
-      })
-      .catch((_) => setLoading(false));
+    confirm(() => {
+      setLoading(true);
+      dispatch(
+        changePassword({ currentPassword, newPassword, confirmNewPassword })
+      )
+        .unwrap()
+        .then((_) => {
+          setSuccess(true);
+          setLoading(false);
+          history.push('/profile');
+        })
+        .catch((_) => setLoading(false));
+    });
   };
   const handleChangeCurrentPassword = (e) => setCurrentPassword(e.target.value);
   const handleChangeNewPassword = (e) => setNewPassword(e.target.value);

@@ -1,26 +1,34 @@
 const express = require('express');
-const { verifyToken } = require('../../middlewares/verifyJwt');
-const router = express.Router();
+const { verifyToken, hasAnyRole } = require('../../middlewares/verifyJwt');
+const router = express.Router({ mergeParams: true });
+const Validator = require('../login/validator');
 
-const { getUser, updateUser, changeAvatar, changeInfo } = require('./controller');
+const {
+  getUser,
+  changeAvatar,
+  changeInfo,
+  createNewUser,
+  getUsers,
+  blockUser,
+} = require('./controller');
 
-// router.get('/', getUsers);
 const multer = require('multer');
-// {
-//     fileFilter: function (req, file, cb) {
-//       if (file.mimetype !== 'image/png') {
-//         return cb(null, false, new Error('Only image type allowed'));
-//       }
-//       cb(null, true);
-//     },
-//   }
+const { ROLE_ADMIN } = require('../../constants');
+
 const fileUpload = multer();
 
 router.use(verifyToken);
-router.route('/').get(getUser).put(updateUser);
 
 router.post('/changeAvatar', fileUpload.single('avatar'), changeAvatar);
 router.post('/changeInfo', changeInfo);
+
+router.use(hasAnyRole(ROLE_ADMIN));
+router
+  .route('/')
+  .get(getUsers)
+  .post(Validator.validate('signup'), createNewUser);
+router.route('/:id').get(getUser);
+router.route('/block').post(blockUser);
 
 // router.get('/email/:email', getUsers);
 

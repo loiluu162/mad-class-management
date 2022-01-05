@@ -22,6 +22,8 @@ import EditClass from './features/classes/editClass';
 import SingleClassPage from './features/classes/singleClass';
 import ChangeUserInfo from './components/changeUserInfo';
 import ChangeAvt from './components/changeAvatar';
+import UserManage from './pages/admin/user';
+import AddNewUser from './features/users/addNewUser';
 
 function App() {
   return (
@@ -66,6 +68,18 @@ function App() {
               />
               <ProtectedRoute
                 requireRoles={['ROLE_ADMIN']}
+                path='/admin/users/new'
+                exact
+                component={AddNewUser}
+              />
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
+                path='/admin/users'
+                exact
+                component={UserManage}
+              />
+              <ProtectedRoute
+                requireRoles={['ROLE_ADMIN']}
                 path='/admin/registration'
                 exact
                 component={RegistrationManage}
@@ -95,7 +109,7 @@ function App() {
                 component={ChangeAvt}
               />
               <ProtectedRoute
-                path='/changeInfo' 
+                path='/changeInfo'
                 exact
                 component={ChangeUserInfo}
               />

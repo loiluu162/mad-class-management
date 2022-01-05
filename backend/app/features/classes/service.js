@@ -1,5 +1,5 @@
 const { StatusCodes } = require('http-status-codes');
-const { User, StudyTime, sequelize, Class } = require('../../db');
+const { User, StudyTime, sequelize } = require('../../db');
 const AppError = require('../../utils/appError');
 const { ClassRepo, StudyTimeRepo } = require('./repo');
 const { REGISTRATION_ACCEPTED } = require('../../constants');

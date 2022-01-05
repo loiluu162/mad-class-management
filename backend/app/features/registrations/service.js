@@ -16,8 +16,7 @@ const AppError = require('../../utils/appError');
 const { RegistrationRepo } = require('./repo');
 const { Op, QueryTypes } = require('sequelize');
 const { UserRepo } = require('../users/repo');
-const { ClassRepo } = require('../classes/repo');
-const { User, sequelize } = require('../../db');
+const { sequelize } = require('../../db');
 
 const getAllRegistrations = async () => {
   // const registrations = await RegistrationRepo.findAll({}, [{ model: User }]);

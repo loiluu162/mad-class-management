@@ -110,8 +110,16 @@ const registrationsSlice = createSlice({
         state.status = 'succeeded';
         state.registrations = action.payload.content;
       })
+      .addCase(fetchRegistrations.rejected, (state, action) => {
+        state.status = 'fail';
+        state.registrations = [];
+      })
       .addCase(fetchMyRegistrations.pending, (state, action) => {
         state.status = 'loading';
+      })
+      .addCase(fetchMyRegistrations.rejected, (state, action) => {
+        state.status = 'fail';
+        state.registrations = [];
       })
       .addCase(fetchMyRegistrations.fulfilled, (state, action) => {
         state.status = 'succeeded';

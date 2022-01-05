@@ -14,10 +14,11 @@ const {
 router.use(verifyToken);
 router.post('/', createNewRegistration);
 router.post('/cancel', cancelRegistration);
+router.route('/my').get(getMyRegistrations);
 
 router.use(hasAnyRole(ROLE_ADMIN));
+
 router.route('/').get(getAllRegistrations);
-router.route('/my').get(getMyRegistrations);
 router.put('/changeStatus', changeStatusRegistration);
 
 module.exports = router;
