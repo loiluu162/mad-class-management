@@ -6,7 +6,6 @@ const { REGISTRATION_PENDING, ROLE_USER, ROLE_ADMIN } = require('../constants');
 const sequelize = new Sequelize(databaseConnectionString, {
   dialect: 'postgres',
   dialectOptions: {
-    ssl: true,
     rejectUnauthorized: false,
   },
 });
