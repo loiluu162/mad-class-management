@@ -35,13 +35,14 @@ const limiter = rateLimit({
 });
 app.use(xss());
 app.use(compression());
+app.set('view engine', 'html');
 
 app.use('/api', limiter);
 app.use('/api/users', UserRoute);
 app.use('/api/auth', LoginRoute);
 app.use('/api/classes', ClassRoute);
 app.use('/api/registrations', RegistrationRoute);
-
+app.get('/', (req, res) => res.send('Hello world'));
 app.all('*', (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
