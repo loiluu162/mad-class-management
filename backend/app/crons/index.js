@@ -14,35 +14,35 @@ cron.schedule(EVERY_THREE_DAYS, async () => {
   console.log(`INFO: Remove ${res[0]} expired tokens`);
 });
 
-cron.schedule(EVERY_MINUTE, async () => {
-  console.log('INFO: reminder starting..');
-  // get all classes that started and have study times startAt < now 1h
-  const ONE_HOUR_LENGTH = 60 * 60 * 1000;
+// cron.schedule(EVERY_MINUTE, async () => {
+//   console.log('INFO: reminder starting..');
+//   // get all classes that started and have study times startAt < now 1h
+//   const ONE_HOUR_LENGTH = 60 * 60 * 1000;
 
-  await ClassRepo.findAll({}, [
-    {
-      model: User,
-      as: 'students',
-      through: {
-        where: {
-          status: REGISTRATION_ACCEPTED,
-        },
-        attributes: [],
-      },
-    },
-    {
-      model: StudyTime,
-      as: 'studyTimes',
-      through: {
-        where: {
-          startTime: {
-            [Op.gt]: new Date(Date.now() - ONE_HOUR_LENGTH),
-          },
-        },
-        attributes: [],
-      },
-    },
-  ]);
-});
+//   await ClassRepo.findAll({}, [
+//     {
+//       model: User,
+//       as: 'students',
+//       through: {
+//         where: {
+//           status: REGISTRATION_ACCEPTED,
+//         },
+//         attributes: [],
+//       },
+//     },
+//     {
+//       model: StudyTime,
+//       as: 'studyTimes',
+//       through: {
+//         where: {
+//           startTime: {
+//             [Op.gt]: new Date(Date.now() - ONE_HOUR_LENGTH),
+//           },
+//         },
+//         attributes: [],
+//       },
+//     },
+//   ]);
+// });
 
 module.exports = cron;
