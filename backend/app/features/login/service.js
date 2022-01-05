@@ -26,7 +26,8 @@ const login = async (req) => {
   catchValidationError(req);
   const { email, password } = req.body;
   const user = await UserRepo.findOne({ email });
-  if (!user) throw Error('User not found');
+  if (!user) throw AppError('User not found');
+
   if (!user.enabled) {
     throw new AppError(
       'User not verified. Please check your email for confirmation',
@@ -34,10 +35,12 @@ const login = async (req) => {
     );
   }
   const pwMatch = await PasswordUtils.compare(password, user.password);
+
   if (!pwMatch) {
     throw new AppError('Password wrong', StatusCodes.BAD_REQUEST);
   }
-  return generateUserCredential(user.id);
+
+  return await generateUserCredential(user.id);
 };
 
 const signup = async (req) => {
@@ -64,15 +67,13 @@ const signup = async (req) => {
     await newUser.setRoles(rolesData, { transaction: t });
     // create token
     token = await createVerificationToken(newUser.id, { transaction: t });
-
     await t.commit();
+    EmailUtils.sendVerification(email, token);
     // send email
   } catch (err) {
-    console.error(err);
     await t.rollback();
     throw new Error('Something went wrong');
   }
-  await EmailUtils.sendVerification(email, token);
 };
 
 const isExistsEmail = async (email) => {

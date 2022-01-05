@@ -75,27 +75,27 @@ User.hasOne(Token, {
 Class.hasMany(StudyTime, { as: 'studyTimes' });
 StudyTime.belongsTo(Class, { as: 'class' });
 
-(async () => {
-  try {
-    await sequelize.authenticate();
-    await User.sync();
-    await Role.sync();
-    await UserRole.sync();
-    await Token.sync();
-    await Class.sync();
-    await Registration.sync();
-    await StudyTime.sync();
-    await Role.findOrCreate({
-      where: { name: ROLE_USER },
-    });
-    await Role.findOrCreate({
-      where: { name: ROLE_ADMIN },
-    });
-    console.log('Connection has been established successfully.');
-  } catch (error) {
-    console.error('Unable to connect to the database:', error);
-  }
-})();
+// (async () => {
+//   try {
+//     await sequelize.authenticate();
+//     await User.sync();
+//     await Role.sync();
+//     await UserRole.sync();
+//     await Token.sync();
+//     await Class.sync();
+//     await Registration.sync();
+//     await StudyTime.sync();
+//     await Role.findOrCreate({
+//       where: { name: ROLE_USER },
+//     });
+//     await Role.findOrCreate({
+//       where: { name: ROLE_ADMIN },
+//     });
+//     console.log('Connection has been established successfully.');
+//   } catch (error) {
+//     console.error('Unable to connect to the database:', error);
+//   }
+// })();
 
 module.exports = {
   sequelize,

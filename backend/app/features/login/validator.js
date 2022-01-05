@@ -27,7 +27,7 @@ exports.validate = (method) => {
           return UserRepo.findOne({ email }).then((existed) => {
             if (existed) {
               return Promise.reject(
-                new AppError('Email already in use', StatusCodes.FORBIDDEN)
+                new AppError('Email already in use', StatusCodes.BAD_REQUEST)
               );
             }
           });
@@ -40,7 +40,7 @@ exports.validate = (method) => {
         body('email').custom((email) => {
           return UserRepo.findOne({ email }).then((existed) => {
             if (!existed) {
-              return Promise.reject(new AppError('E-mail not existed in use'));
+              return Promise.reject(new AppError('Email not existed in use'));
             }
           });
         }),
