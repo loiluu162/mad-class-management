@@ -7,6 +7,7 @@ const sequelize = new Sequelize(databaseConnectionString, {
   dialect: 'postgres',
   dialectOptions: {
     ssl: true,
+    rejectUnauthorized: false,
   },
 });
 
