@@ -18,17 +18,16 @@ const sendErrorDev = (err, req, res) => {
 const sendErrorProd = (err, req, res) => {
   if (req.originalUrl.startsWith('/api')) {
     if (err.isOperational) {
-      // return errorResponse(res, err.message, err.statusCode);
       return res.status(err.statusCode).json({
         status: err.statusCode,
         error: err.message,
       });
     }
-    return errorResponse(
-      res,
-      'Something went very wrong!',
-      StatusCodes.INTERNAL_SERVER_ERROR
-    );
+
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      status: StatusCodes.INTERNAL_SERVER_ERROR,
+      error: 'Something went very wrong!',
+    });
   }
 
   if (err.isOperational) {
@@ -50,8 +49,7 @@ module.exports = (err, req, res, next) => {
   if (process.env.NODE_ENV === 'dev') {
     sendErrorDev(err, req, res);
   } else if (process.env.NODE_ENV === 'prod') {
-    const error = { ...err };
     // handle specific Error by name here
-    sendErrorProd(error, req, res);
+    sendErrorProd(err, req, res);
   }
 };
