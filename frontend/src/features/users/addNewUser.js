@@ -21,7 +21,7 @@ const AddNewUser = () => {
 
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

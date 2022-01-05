@@ -20,7 +20,7 @@ const ChangePassword = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

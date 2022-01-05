@@ -17,7 +17,7 @@ function Login() {
 
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

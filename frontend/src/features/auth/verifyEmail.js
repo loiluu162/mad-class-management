@@ -28,7 +28,7 @@ const VerifyEmail = (props) => {
 
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

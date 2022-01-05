@@ -20,7 +20,7 @@ export default function Signup() {
 
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

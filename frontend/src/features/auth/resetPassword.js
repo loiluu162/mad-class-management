@@ -16,7 +16,7 @@ const ResetPassword = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const message = useSelector(selectMessage);
 

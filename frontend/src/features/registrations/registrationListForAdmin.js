@@ -62,7 +62,7 @@ const RegistrationListForAdmin = () => {
 
   useEffect(() => {
     dispatch(fetchRegistrations());
-  }, [dispatch]);
+  }, []);
 
   const handleUpdateClick = (e) => {
     const [userId, classId] = e.target.name.split('__');
@@ -88,7 +88,7 @@ const RegistrationListForAdmin = () => {
 
   if (filtered.length) {
     content = filtered.map(
-      (item) => 
+      (item) =>
         item && (
           <RegistrationExpert
             reg={item}

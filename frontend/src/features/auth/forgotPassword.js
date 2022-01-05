@@ -13,7 +13,7 @@ const ForgotPassword = () => {
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(clearMessage());
-  }, [dispatch]);
+  }, []);
 
   const [success, setSuccess] = useState(false);
 

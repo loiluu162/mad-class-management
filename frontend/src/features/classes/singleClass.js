@@ -47,7 +47,7 @@ export default function SingleClassPage({ match }) {
           <p>
             Current{' '}
             <b>
-              {students.length}/{maxStudents}
+              {(students && students.length) || 0}/{maxStudents}
             </b>{' '}
             accepted
           </p>
