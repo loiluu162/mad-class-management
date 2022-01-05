@@ -1,12 +1,7 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import ChangeUserInfo from '../../components/changeUserInfo';
-import ChangeAvt from '../../components/changeAvatar';
-import {
-  changePassword,
-  selectCurrentUser,
-} from '../../features/auth/authSlice';
+import { selectCurrentUser } from '../../features/auth/authSlice';
 
 function Profile() {
   const user = useSelector(selectCurrentUser);
