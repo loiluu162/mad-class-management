@@ -18,7 +18,11 @@ const sendErrorDev = (err, req, res) => {
 const sendErrorProd = (err, req, res) => {
   if (req.originalUrl.startsWith('/api')) {
     if (err.isOperational) {
-      return errorResponse(res, err.message, err.statusCode);
+      // return errorResponse(res, err.message, err.statusCode);
+      return res.status(err.statusCode).json({
+        status: err.statusCode,
+        error: err.message,
+      });
     }
     return errorResponse(
       res,
